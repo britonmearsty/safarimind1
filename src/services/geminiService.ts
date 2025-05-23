@@ -1,8 +1,7 @@
 // Gemini API service for handling AI interactions
 
 // The API key is loaded from the .env file
-const apiKey =
-  import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
 // Hardcoded API key as a fallback (only first few characters shown for security)
 const FALLBACK_API_KEY = "AIzaSyASHIEu-mN27laegkeZkXGqnEkVdVGlAK8";
