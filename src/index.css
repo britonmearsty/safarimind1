@@ -1,0 +1,1312 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom responsive class for extra small screens */
+@media (min-width: 480px) {
+  .xs\:block {
+    display: block;
+  }
+  .xs\:hidden {
+    display: none;
+  }
+}
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  color-scheme: light dark;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Modal animations */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalScaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes modalSlideInTop {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes modalBackdropBlur {
+  from {
+    backdrop-filter: blur(0px);
+  }
+  to {
+    backdrop-filter: blur(4px);
+  }
+}
+
+/* Modal styling */
+.modal-backdrop {
+  @apply fixed inset-0 z-50 transition-all duration-300;
+  animation: modalFadeIn 0.3s ease-out, modalBackdropBlur 0.3s ease-out;
+  background: linear-gradient(
+    to bottom right,
+    rgba(0, 0, 0, 0.4),
+    rgba(0, 0, 0, 0.6)
+  );
+  backdrop-filter: blur(4px);
+}
+
+.dark .modal-backdrop {
+  background: linear-gradient(
+    to bottom right,
+    rgba(0, 0, 0, 0.5),
+    rgba(0, 0, 0, 0.7)
+  );
+}
+
+.modal-container {
+  @apply w-full bg-white dark:bg-gray-800 shadow-2xl rounded-lg overflow-hidden transform transition-all;
+  animation: modalScaleIn 0.3s ease-out;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dark .modal-container {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3),
+    0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(
+    to bottom,
+    rgba(31, 41, 55, 1),
+    rgba(17, 24, 39, 1)
+  );
+}
+
+.modal-header {
+  @apply flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700;
+  background: linear-gradient(
+    to right,
+    rgba(249, 250, 251, 0.8),
+    rgba(249, 250, 251, 0.6)
+  );
+}
+
+.dark .modal-header {
+  background: linear-gradient(
+    to right,
+    rgba(31, 41, 55, 0.8),
+    rgba(17, 24, 39, 0.8)
+  );
+}
+
+.modal-title {
+  @apply text-xl font-semibold;
+  background: linear-gradient(to right, #4f46e5, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+.dark .modal-title {
+  background: linear-gradient(to right, #818cf8, #a5b4fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.modal-close-button {
+  @apply p-1.5 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2;
+  background: rgba(243, 244, 246, 0.8);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.dark .modal-close-button {
+  @apply focus:ring-indigo-400 focus:ring-offset-gray-800;
+  background: rgba(55, 65, 81, 0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.modal-close-button:hover {
+  @apply transform scale-110;
+  background: rgba(229, 231, 235, 0.9);
+}
+
+.dark .modal-close-button:hover {
+  background: rgba(75, 85, 99, 0.9);
+}
+
+.modal-body {
+  @apply p-6 overflow-y-auto;
+  max-height: calc(90vh - 130px);
+}
+
+.modal-footer {
+  @apply p-4 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3;
+  background: linear-gradient(
+    to right,
+    rgba(249, 250, 251, 0.8),
+    rgba(249, 250, 251, 0.6)
+  );
+}
+
+.dark .modal-footer {
+  background: linear-gradient(
+    to right,
+    rgba(31, 41, 55, 0.8),
+    rgba(17, 24, 39, 0.8)
+  );
+}
+
+.modal-button-secondary {
+  @apply px-4 py-2 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2;
+  background: linear-gradient(
+    to bottom,
+    rgba(243, 244, 246, 1),
+    rgba(229, 231, 235, 1)
+  );
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.dark .modal-button-secondary {
+  @apply focus:ring-gray-400 focus:ring-offset-gray-800;
+  background: linear-gradient(
+    to bottom,
+    rgba(75, 85, 99, 1),
+    rgba(55, 65, 81, 1)
+  );
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.modal-button-secondary:hover {
+  @apply transform scale-105;
+  background: linear-gradient(
+    to bottom,
+    rgba(229, 231, 235, 1),
+    rgba(209, 213, 219, 1)
+  );
+}
+
+.dark .modal-button-secondary:hover {
+  background: linear-gradient(
+    to bottom,
+    rgba(55, 65, 81, 1),
+    rgba(31, 41, 55, 1)
+  );
+}
+
+.modal-button-primary {
+  @apply px-4 py-2 rounded-md text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2;
+  background: linear-gradient(to right, #4f46e5, #6366f1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.dark .modal-button-primary {
+  @apply focus:ring-indigo-400 focus:ring-offset-gray-800;
+  background: linear-gradient(to right, #4f46e5, #4338ca);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.modal-button-primary:hover {
+  @apply transform scale-105;
+  background: linear-gradient(to right, #4338ca, #3730a3);
+}
+
+.dark .modal-button-primary:hover {
+  background: linear-gradient(to right, #6366f1, #4f46e5);
+}
+
+@layer base {
+  body {
+    @apply text-gray-900 dark:text-gray-100;
+  }
+
+  /* Handle smooth transitions for theme changes */
+  .dark {
+    color-scheme: dark;
+  }
+
+  /* Apply transition to all elements for smoother theme switching */
+  * {
+    @apply transition-colors duration-300 ease-in-out;
+  }
+
+  /* Ensure background transitions are smooth */
+  body,
+  div,
+  main,
+  section,
+  header,
+  footer,
+  aside,
+  nav {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Special class for theme transition */
+  .theme-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Class for dark mode transition */
+  .dark-mode-transition {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Minimal scrollbar styling with primary colors for all browsers */
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(79, 70, 229, 0.3) transparent;
+  }
+
+  /* Dark mode for Firefox */
+  .dark * {
+    scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
+  }
+
+  /* Chrome, Edge, Safari */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      to bottom,
+      rgba(79, 70, 229, 0.3),
+      rgba(99, 102, 241, 0.3)
+    );
+    border-radius: 10px;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      to bottom,
+      rgba(99, 102, 241, 0.4),
+      rgba(129, 140, 248, 0.4)
+    );
+    border-radius: 10px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      to bottom,
+      rgba(79, 70, 229, 0.5),
+      rgba(99, 102, 241, 0.5)
+    );
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      to bottom,
+      rgba(99, 102, 241, 0.6),
+      rgba(129, 140, 248, 0.6)
+    );
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  .prose {
+    @apply max-w-none;
+  }
+  .prose p {
+    @apply my-2;
+  }
+  .prose code {
+    @apply px-1 py-0.5 rounded text-sm bg-gray-100 dark:bg-gray-700;
+  }
+  .prose pre {
+    @apply p-3 rounded-md bg-transparent dark:bg-transparent text-gray-800 dark:text-gray-200 overflow-auto my-3;
+  }
+  .prose pre code {
+    @apply bg-transparent text-inherit p-0;
+  }
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4 {
+    @apply font-semibold my-3;
+  }
+  .prose h1 {
+    @apply text-2xl;
+  }
+  .prose h2 {
+    @apply text-xl;
+  }
+  .prose h3 {
+    @apply text-lg;
+  }
+  .prose ul,
+  .prose ol {
+    @apply pl-5 my-2;
+  }
+  .prose ul {
+    @apply list-disc;
+  }
+  .prose ol {
+    @apply list-decimal;
+  }
+  .prose a {
+    @apply text-blue-600 dark:text-blue-400 underline;
+  }
+
+  /* Custom override for the chat input in welcome screen */
+  .no-border-override > div {
+    border-top: none !important;
+  }
+
+  /* Hide scrollbar for all browsers */
+  .hide-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Minimal scrollbar styling with primary colors for chat containers */
+  /* Firefox */
+  .overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(79, 70, 229, 0.25) transparent;
+  }
+
+  .dark .overflow-y-auto {
+    scrollbar-color: rgba(99, 102, 241, 0.35) transparent;
+  }
+
+  /* Chrome, Edge, Safari */
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      to bottom,
+      rgba(79, 70, 229, 0.25),
+      rgba(99, 102, 241, 0.25)
+    );
+    border-radius: 10px;
+  }
+
+  .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      to bottom,
+      rgba(99, 102, 241, 0.35),
+      rgba(129, 140, 248, 0.35)
+    );
+    border-radius: 10px;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      to bottom,
+      rgba(79, 70, 229, 0.4),
+      rgba(99, 102, 241, 0.4)
+    );
+  }
+
+  .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      to bottom,
+      rgba(99, 102, 241, 0.5),
+      rgba(129, 140, 248, 0.5)
+    );
+  }
+
+  /* Markdown content specific styling */
+  .markdown-content {
+    @apply leading-relaxed text-sm;
+  }
+
+  .markdown-content p {
+    @apply my-2.5 text-gray-700 dark:text-gray-300;
+  }
+
+  .markdown-content img {
+    @apply max-w-full h-auto my-4 rounded-md shadow-sm;
+  }
+
+  /* Enhanced code syntax highlighting colors with more distinct colors and better contrast */
+  .markdown-content code {
+    @apply text-indigo-600 dark:text-indigo-400 font-mono;
+  }
+
+  /* Ensure code inside pre doesn't inherit conflicting styles */
+  .markdown-content pre code {
+    @apply bg-transparent border-0 p-0 text-gray-800 dark:text-gray-200;
+  }
+
+  /* Enhanced code block styling with gradient border and transparent background */
+  .code-block {
+    @apply bg-transparent dark:bg-transparent relative;
+    border-radius: 0.375rem;
+    background-image: linear-gradient(to right, transparent, transparent);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), 0 2px 4px 0 rgba(0, 0, 0, 0.03);
+  }
+
+  .dark .code-block {
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05),
+      0 2px 4px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  /* Add subtle gradient border effect */
+  .code-block::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 0.375rem;
+    padding: 1px;
+    background: linear-gradient(
+      to right,
+      rgba(125, 125, 255, 0.1),
+      rgba(125, 211, 255, 0.1)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .dark .code-block::before {
+    background: linear-gradient(
+      to right,
+      rgba(125, 125, 255, 0.2),
+      rgba(125, 211, 255, 0.2)
+    );
+  }
+
+  /* Style language indicator with a badge-like appearance */
+  .code-block > div:first-child > span:first-child {
+    @apply text-xs font-medium px-2 py-0.5 rounded-full;
+    background: linear-gradient(
+      to right,
+      rgba(99, 102, 241, 0.1),
+      rgba(79, 70, 229, 0.1)
+    );
+    color: rgba(79, 70, 229, 0.9);
+    text-shadow: 0 0 1px rgba(79, 70, 229, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+  }
+
+  .dark .code-block > div:first-child > span:first-child {
+    background: linear-gradient(
+      to right,
+      rgba(99, 102, 241, 0.2),
+      rgba(79, 70, 229, 0.2)
+    );
+    color: rgba(165, 180, 252, 0.9);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+  }
+
+  /* Add language-specific colors */
+  .code-block > div:first-child > span:first-child[data-language="javascript"],
+  .code-block > div:first-child > span:first-child[data-language="js"] {
+    background: linear-gradient(
+      to right,
+      rgba(234, 179, 8, 0.1),
+      rgba(202, 138, 4, 0.1)
+    );
+    color: rgba(202, 138, 4, 0.9);
+    border: 1px solid rgba(234, 179, 8, 0.2);
+  }
+
+  .dark
+    .code-block
+    > div:first-child
+    > span:first-child[data-language="javascript"],
+  .dark .code-block > div:first-child > span:first-child[data-language="js"] {
+    background: linear-gradient(
+      to right,
+      rgba(234, 179, 8, 0.2),
+      rgba(202, 138, 4, 0.2)
+    );
+    color: rgba(253, 224, 71, 0.9);
+    border: 1px solid rgba(234, 179, 8, 0.3);
+  }
+
+  .code-block > div:first-child > span:first-child[data-language="typescript"],
+  .code-block > div:first-child > span:first-child[data-language="ts"] {
+    background: linear-gradient(
+      to right,
+      rgba(37, 99, 235, 0.1),
+      rgba(29, 78, 216, 0.1)
+    );
+    color: rgba(29, 78, 216, 0.9);
+    border: 1px solid rgba(37, 99, 235, 0.2);
+  }
+
+  .dark
+    .code-block
+    > div:first-child
+    > span:first-child[data-language="typescript"],
+  .dark .code-block > div:first-child > span:first-child[data-language="ts"] {
+    background: linear-gradient(
+      to right,
+      rgba(37, 99, 235, 0.2),
+      rgba(29, 78, 216, 0.2)
+    );
+    color: rgba(96, 165, 250, 0.9);
+    border: 1px solid rgba(37, 99, 235, 0.3);
+  }
+
+  .code-block > div:first-child > span:first-child[data-language="python"],
+  .code-block > div:first-child > span:first-child[data-language="py"] {
+    background: linear-gradient(
+      to right,
+      rgba(16, 185, 129, 0.1),
+      rgba(5, 150, 105, 0.1)
+    );
+    color: rgba(5, 150, 105, 0.9);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
+
+  .dark
+    .code-block
+    > div:first-child
+    > span:first-child[data-language="python"],
+  .dark .code-block > div:first-child > span:first-child[data-language="py"] {
+    background: linear-gradient(
+      to right,
+      rgba(16, 185, 129, 0.2),
+      rgba(5, 150, 105, 0.2)
+    );
+    color: rgba(52, 211, 153, 0.9);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+  }
+
+  /* Remove all shadows and backgrounds from code blocks */
+  .markdown-content pre,
+  .markdown-content pre:hover {
+    @apply bg-transparent shadow-none border-0;
+  }
+
+  /* Creative code syntax highlighting with vibrant colors and distinct styles */
+
+  /* Comments - subtle italic style */
+  .markdown-content .token.comment,
+  .markdown-content .token.prolog,
+  .markdown-content .token.doctype,
+  .markdown-content .token.cdata {
+    @apply text-slate-500 dark:text-slate-400 italic;
+    font-style: italic;
+    opacity: 0.8;
+  }
+
+  /* Punctuation - subtle but visible */
+  .markdown-content .token.punctuation {
+    @apply text-gray-500 dark:text-gray-400;
+    opacity: 0.85;
+  }
+
+  /* Properties, tags, booleans, numbers - vibrant purple family */
+  .markdown-content .token.property {
+    @apply text-fuchsia-600 dark:text-fuchsia-400 font-medium;
+  }
+
+  .markdown-content .token.tag {
+    @apply text-purple-600 dark:text-purple-400 font-semibold;
+  }
+
+  .markdown-content .token.boolean {
+    @apply text-violet-600 dark:text-violet-400 font-semibold;
+  }
+
+  .markdown-content .token.number {
+    @apply text-indigo-600 dark:text-indigo-400 font-medium;
+  }
+
+  .markdown-content .token.constant {
+    @apply text-purple-700 dark:text-purple-300 font-semibold;
+  }
+
+  .markdown-content .token.symbol {
+    @apply text-fuchsia-700 dark:text-fuchsia-300 font-medium;
+  }
+
+  /* Strings, chars, builtins - green family with different shades */
+  .markdown-content .token.selector {
+    @apply text-emerald-600 dark:text-emerald-400;
+  }
+
+  .markdown-content .token.attr-name {
+    @apply text-lime-700 dark:text-lime-400 font-medium;
+  }
+
+  .markdown-content .token.string {
+    @apply text-green-600 dark:text-green-400;
+    text-shadow: 0 0 1px rgba(0, 128, 0, 0.1);
+  }
+
+  .markdown-content .token.char {
+    @apply text-teal-600 dark:text-teal-400;
+  }
+
+  .markdown-content .token.builtin {
+    @apply text-emerald-700 dark:text-emerald-300 font-medium;
+  }
+
+  /* Operators, entities, URLs - amber/yellow family */
+  .markdown-content .token.operator {
+    @apply text-amber-600 dark:text-amber-400 font-bold;
+  }
+
+  .markdown-content .token.entity {
+    @apply text-yellow-700 dark:text-yellow-300;
+    text-decoration: underline dotted;
+  }
+
+  .markdown-content .token.url {
+    @apply text-amber-700 dark:text-amber-300 underline;
+    text-decoration-style: wavy;
+    text-decoration-thickness: 1px;
+  }
+
+  .markdown-content .language-css .token.string,
+  .markdown-content .style .token.string {
+    @apply text-yellow-600 dark:text-yellow-400 font-medium;
+    font-style: italic;
+  }
+
+  /* Keywords - vibrant blue family */
+  .markdown-content .token.atrule {
+    @apply text-sky-600 dark:text-sky-400 font-semibold;
+  }
+
+  .markdown-content .token.attr-value {
+    @apply text-blue-600 dark:text-blue-400 font-medium;
+  }
+
+  .markdown-content .token.keyword {
+    @apply text-cyan-700 dark:text-cyan-400 font-semibold;
+    letter-spacing: 0.02em;
+  }
+
+  /* Functions, class names - pink/red family */
+  .markdown-content .token.function {
+    @apply text-rose-600 dark:text-rose-400 font-medium;
+  }
+
+  .markdown-content .token.class-name {
+    @apply text-pink-600 dark:text-pink-400 font-semibold;
+    letter-spacing: 0.01em;
+  }
+
+  /* Regex, important, variables - orange/red family */
+  .markdown-content .token.regex {
+    @apply text-red-600 dark:text-red-400 font-medium;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-thickness: 1px;
+  }
+
+  .markdown-content .token.important {
+    @apply text-red-700 dark:text-red-300 font-bold;
+    position: relative;
+  }
+
+  .markdown-content .token.variable {
+    @apply text-orange-600 dark:text-orange-400;
+    font-style: italic;
+  }
+
+  /* Ensure proper spacing for lists */
+  .markdown-content ul,
+  .markdown-content ol {
+    @apply my-3 ml-6;
+  }
+
+  /* Style for links */
+  .markdown-content a {
+    @apply text-blue-600 dark:text-blue-400 hover:underline transition-colors;
+  }
+
+  /* Transition effects for interactive elements */
+  .markdown-content button,
+  .markdown-content a {
+    @apply transition-all duration-200;
+  }
+
+  /* No hover effects for code blocks */
+  .markdown-content pre:hover {
+    @apply shadow-none bg-transparent border-0;
+  }
+
+  /* Ensure code blocks have transparent backgrounds */
+  .code-block,
+  .code-block *,
+  .code-block pre,
+  .code-block code,
+  .code-block code[class*="language-"],
+  .code-block pre[class*="language-"],
+  .code-block span[class*="token"] {
+    @apply bg-transparent !important;
+  }
+
+  /* Add line numbering and highlighting effect on hover */
+  .code-block pre code {
+    counter-reset: line;
+  }
+
+  .code-block pre code > div {
+    @apply transition-colors duration-150 ease-in-out border-l-2 border-transparent pl-2 -ml-2 relative;
+    counter-increment: line;
+  }
+
+  .code-block pre code > div:hover {
+    @apply border-l-2 border-indigo-300 dark:border-indigo-700 bg-indigo-50/10 dark:bg-indigo-900/10 !important;
+  }
+
+  /* Add line numbers */
+  .code-block pre code > div::before {
+    content: counter(line);
+    @apply absolute -left-6 w-4 text-right text-gray-400 dark:text-gray-500 text-xs opacity-70;
+    user-select: none;
+  }
+
+  /* Custom scrollbar for code blocks - ultra minimal */
+  .code-block pre {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(79, 70, 229, 0.2) transparent;
+  }
+
+  .dark .code-block pre {
+    scrollbar-color: rgba(99, 102, 241, 0.3) transparent;
+  }
+
+  .code-block pre::-webkit-scrollbar {
+    width: 2px;
+    height: 2px;
+  }
+
+  .code-block pre::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .code-block pre::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      to right,
+      rgba(79, 70, 229, 0.2),
+      rgba(99, 102, 241, 0.2)
+    );
+    border-radius: 10px;
+  }
+
+  .dark .code-block pre::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      to right,
+      rgba(99, 102, 241, 0.3),
+      rgba(129, 140, 248, 0.3)
+    );
+    border-radius: 10px;
+  }
+
+  .code-block pre::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      to right,
+      rgba(79, 70, 229, 0.3),
+      rgba(99, 102, 241, 0.3)
+    );
+  }
+
+  .dark .code-block pre::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      to right,
+      rgba(99, 102, 241, 0.4),
+      rgba(129, 140, 248, 0.4)
+    );
+  }
+
+  /* Add language-specific styling */
+  /* JavaScript/TypeScript */
+  .code-block[data-language="javascript"] .token.keyword,
+  .code-block[data-language="js"] .token.keyword,
+  .code-block[data-language="typescript"] .token.keyword,
+  .code-block[data-language="ts"] .token.keyword {
+    color: #af00db;
+    font-weight: 600;
+  }
+
+  /* Special styling for variable declarations */
+  .code-block[data-language="javascript"] .token.keyword[content="const"],
+  .code-block[data-language="js"] .token.keyword[content="const"],
+  .code-block[data-language="typescript"] .token.keyword[content="const"],
+  .code-block[data-language="ts"] .token.keyword[content="const"],
+  .code-block[data-language="javascript"] .token.keyword[content="let"],
+  .code-block[data-language="js"] .token.keyword[content="let"],
+  .code-block[data-language="typescript"] .token.keyword[content="let"],
+  .code-block[data-language="ts"] .token.keyword[content="let"],
+  .code-block[data-language="javascript"] .token.keyword[content="var"],
+  .code-block[data-language="js"] .token.keyword[content="var"],
+  .code-block[data-language="typescript"] .token.keyword[content="var"],
+  .code-block[data-language="ts"] .token.keyword[content="var"] {
+    color: #9333ea; /* Purple */
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  /* Special styling for control flow */
+  .code-block[data-language="javascript"] .token.keyword[content="if"],
+  .code-block[data-language="javascript"] .token.keyword[content="else"],
+  .code-block[data-language="javascript"] .token.keyword[content="for"],
+  .code-block[data-language="javascript"] .token.keyword[content="while"],
+  .code-block[data-language="javascript"] .token.keyword[content="do"],
+  .code-block[data-language="javascript"] .token.keyword[content="switch"],
+  .code-block[data-language="javascript"] .token.keyword[content="case"],
+  .code-block[data-language="javascript"] .token.keyword[content="break"],
+  .code-block[data-language="javascript"] .token.keyword[content="continue"],
+  .code-block[data-language="javascript"] .token.keyword[content="return"],
+  .code-block[data-language="js"] .token.keyword[content="if"],
+  .code-block[data-language="js"] .token.keyword[content="else"],
+  .code-block[data-language="js"] .token.keyword[content="for"],
+  .code-block[data-language="js"] .token.keyword[content="while"],
+  .code-block[data-language="js"] .token.keyword[content="do"],
+  .code-block[data-language="js"] .token.keyword[content="switch"],
+  .code-block[data-language="js"] .token.keyword[content="case"],
+  .code-block[data-language="js"] .token.keyword[content="break"],
+  .code-block[data-language="js"] .token.keyword[content="continue"],
+  .code-block[data-language="js"] .token.keyword[content="return"],
+  .code-block[data-language="typescript"] .token.keyword[content="if"],
+  .code-block[data-language="typescript"] .token.keyword[content="else"],
+  .code-block[data-language="typescript"] .token.keyword[content="for"],
+  .code-block[data-language="typescript"] .token.keyword[content="while"],
+  .code-block[data-language="typescript"] .token.keyword[content="do"],
+  .code-block[data-language="typescript"] .token.keyword[content="switch"],
+  .code-block[data-language="typescript"] .token.keyword[content="case"],
+  .code-block[data-language="typescript"] .token.keyword[content="break"],
+  .code-block[data-language="typescript"] .token.keyword[content="continue"],
+  .code-block[data-language="typescript"] .token.keyword[content="return"],
+  .code-block[data-language="ts"] .token.keyword[content="if"],
+  .code-block[data-language="ts"] .token.keyword[content="else"],
+  .code-block[data-language="ts"] .token.keyword[content="for"],
+  .code-block[data-language="ts"] .token.keyword[content="while"],
+  .code-block[data-language="ts"] .token.keyword[content="do"],
+  .code-block[data-language="ts"] .token.keyword[content="switch"],
+  .code-block[data-language="ts"] .token.keyword[content="case"],
+  .code-block[data-language="ts"] .token.keyword[content="break"],
+  .code-block[data-language="ts"] .token.keyword[content="continue"],
+  .code-block[data-language="ts"] .token.keyword[content="return"] {
+    color: #0284c7; /* Sky blue */
+    font-weight: 600;
+  }
+
+  /* Special styling for async/await */
+  .code-block[data-language="javascript"] .token.keyword[content="async"],
+  .code-block[data-language="javascript"] .token.keyword[content="await"],
+  .code-block[data-language="js"] .token.keyword[content="async"],
+  .code-block[data-language="js"] .token.keyword[content="await"],
+  .code-block[data-language="typescript"] .token.keyword[content="async"],
+  .code-block[data-language="typescript"] .token.keyword[content="await"],
+  .code-block[data-language="ts"] .token.keyword[content="async"],
+  .code-block[data-language="ts"] .token.keyword[content="await"] {
+    color: #2563eb; /* Blue */
+    font-weight: 700;
+    font-style: italic;
+  }
+
+  /* Special styling for function keyword */
+  .code-block[data-language="javascript"] .token.keyword[content="function"],
+  .code-block[data-language="js"] .token.keyword[content="function"],
+  .code-block[data-language="typescript"] .token.keyword[content="function"],
+  .code-block[data-language="ts"] .token.keyword[content="function"] {
+    color: #e11d48; /* Rose */
+    font-weight: 700;
+  }
+
+  .dark .code-block[data-language="javascript"] .token.keyword,
+  .dark .code-block[data-language="js"] .token.keyword,
+  .dark .code-block[data-language="typescript"] .token.keyword,
+  .dark .code-block[data-language="ts"] .token.keyword {
+    color: #c586c0;
+    font-weight: 600;
+  }
+
+  /* Dark mode special styling for variable declarations */
+  .dark .code-block[data-language="javascript"] .token.keyword[content="const"],
+  .dark .code-block[data-language="js"] .token.keyword[content="const"],
+  .dark .code-block[data-language="typescript"] .token.keyword[content="const"],
+  .dark .code-block[data-language="ts"] .token.keyword[content="const"],
+  .dark .code-block[data-language="javascript"] .token.keyword[content="let"],
+  .dark .code-block[data-language="js"] .token.keyword[content="let"],
+  .dark .code-block[data-language="typescript"] .token.keyword[content="let"],
+  .dark .code-block[data-language="ts"] .token.keyword[content="let"],
+  .dark .code-block[data-language="javascript"] .token.keyword[content="var"],
+  .dark .code-block[data-language="js"] .token.keyword[content="var"],
+  .dark .code-block[data-language="typescript"] .token.keyword[content="var"],
+  .dark .code-block[data-language="ts"] .token.keyword[content="var"] {
+    color: #c084fc; /* Purple */
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  /* Dark mode special styling for function keyword */
+  .dark
+    .code-block[data-language="javascript"]
+    .token.keyword[content="function"],
+  .dark .code-block[data-language="js"] .token.keyword[content="function"],
+  .dark
+    .code-block[data-language="typescript"]
+    .token.keyword[content="function"],
+  .dark .code-block[data-language="ts"] .token.keyword[content="function"] {
+    color: #fb7185; /* Rose */
+    font-weight: 700;
+  }
+
+  .code-block[data-language="javascript"] .token.string,
+  .code-block[data-language="js"] .token.string,
+  .code-block[data-language="typescript"] .token.string,
+  .code-block[data-language="ts"] .token.string {
+    color: #a31515;
+  }
+
+  .dark .code-block[data-language="javascript"] .token.string,
+  .dark .code-block[data-language="js"] .token.string,
+  .dark .code-block[data-language="typescript"] .token.string,
+  .dark .code-block[data-language="ts"] .token.string {
+    color: #ce9178;
+  }
+
+  .code-block[data-language="javascript"] .token.function,
+  .code-block[data-language="js"] .token.function,
+  .code-block[data-language="typescript"] .token.function,
+  .code-block[data-language="ts"] .token.function {
+    color: #795e26;
+  }
+
+  .dark .code-block[data-language="javascript"] .token.function,
+  .dark .code-block[data-language="js"] .token.function,
+  .dark .code-block[data-language="typescript"] .token.function,
+  .dark .code-block[data-language="ts"] .token.function {
+    color: #dcdcaa;
+  }
+
+  /* Python */
+  .code-block[data-language="python"] .token.keyword,
+  .code-block[data-language="py"] .token.keyword {
+    color: #0000ff;
+    font-weight: 600;
+  }
+
+  /* Special styling for Python def and class */
+  .code-block[data-language="python"] .token.keyword[content="def"],
+  .code-block[data-language="py"] .token.keyword[content="def"] {
+    color: #9333ea; /* Purple */
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .code-block[data-language="python"] .token.keyword[content="class"],
+  .code-block[data-language="py"] .token.keyword[content="class"] {
+    color: #be185d; /* Pink */
+    font-weight: 700;
+  }
+
+  /* Special styling for Python control flow */
+  .code-block[data-language="python"] .token.keyword[content="if"],
+  .code-block[data-language="python"] .token.keyword[content="elif"],
+  .code-block[data-language="python"] .token.keyword[content="else"],
+  .code-block[data-language="python"] .token.keyword[content="for"],
+  .code-block[data-language="python"] .token.keyword[content="while"],
+  .code-block[data-language="python"] .token.keyword[content="break"],
+  .code-block[data-language="python"] .token.keyword[content="continue"],
+  .code-block[data-language="python"] .token.keyword[content="return"],
+  .code-block[data-language="py"] .token.keyword[content="if"],
+  .code-block[data-language="py"] .token.keyword[content="elif"],
+  .code-block[data-language="py"] .token.keyword[content="else"],
+  .code-block[data-language="py"] .token.keyword[content="for"],
+  .code-block[data-language="py"] .token.keyword[content="while"],
+  .code-block[data-language="py"] .token.keyword[content="break"],
+  .code-block[data-language="py"] .token.keyword[content="continue"],
+  .code-block[data-language="py"] .token.keyword[content="return"] {
+    color: #0284c7; /* Sky blue */
+    font-weight: 600;
+  }
+
+  /* Special styling for Python import-related */
+  .code-block[data-language="python"] .token.keyword[content="import"],
+  .code-block[data-language="python"] .token.keyword[content="from"],
+  .code-block[data-language="python"] .token.keyword[content="as"],
+  .code-block[data-language="py"] .token.keyword[content="import"],
+  .code-block[data-language="py"] .token.keyword[content="from"],
+  .code-block[data-language="py"] .token.keyword[content="as"] {
+    color: #059669; /* Emerald */
+    font-weight: 600;
+  }
+
+  /* Special styling for Python special keywords */
+  .code-block[data-language="python"] .token.keyword[content="self"],
+  .code-block[data-language="python"] .token.keyword[content="None"],
+  .code-block[data-language="python"] .token.keyword[content="True"],
+  .code-block[data-language="python"] .token.keyword[content="False"],
+  .code-block[data-language="py"] .token.keyword[content="self"],
+  .code-block[data-language="py"] .token.keyword[content="None"],
+  .code-block[data-language="py"] .token.keyword[content="True"],
+  .code-block[data-language="py"] .token.keyword[content="False"] {
+    color: #7c3aed; /* Violet */
+    font-weight: 600;
+  }
+
+  /* Dark mode versions */
+  .dark .code-block[data-language="python"] .token.keyword,
+  .dark .code-block[data-language="py"] .token.keyword {
+    color: #569cd6;
+    font-weight: 600;
+  }
+
+  /* Dark mode special styling for Python def and class */
+  .dark .code-block[data-language="python"] .token.keyword[content="def"],
+  .dark .code-block[data-language="py"] .token.keyword[content="def"] {
+    color: #c084fc; /* Purple */
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .dark .code-block[data-language="python"] .token.keyword[content="class"],
+  .dark .code-block[data-language="py"] .token.keyword[content="class"] {
+    color: #ec4899; /* Pink */
+    font-weight: 700;
+  }
+
+  /* Dark mode special styling for Python control flow */
+  .dark .code-block[data-language="python"] .token.keyword[content="if"],
+  .dark .code-block[data-language="python"] .token.keyword[content="elif"],
+  .dark .code-block[data-language="python"] .token.keyword[content="else"],
+  .dark .code-block[data-language="python"] .token.keyword[content="for"],
+  .dark .code-block[data-language="python"] .token.keyword[content="while"],
+  .dark .code-block[data-language="python"] .token.keyword[content="break"],
+  .dark .code-block[data-language="python"] .token.keyword[content="continue"],
+  .dark .code-block[data-language="python"] .token.keyword[content="return"],
+  .dark .code-block[data-language="py"] .token.keyword[content="if"],
+  .dark .code-block[data-language="py"] .token.keyword[content="elif"],
+  .dark .code-block[data-language="py"] .token.keyword[content="else"],
+  .dark .code-block[data-language="py"] .token.keyword[content="for"],
+  .dark .code-block[data-language="py"] .token.keyword[content="while"],
+  .dark .code-block[data-language="py"] .token.keyword[content="break"],
+  .dark .code-block[data-language="py"] .token.keyword[content="continue"],
+  .dark .code-block[data-language="py"] .token.keyword[content="return"] {
+    color: #38bdf8; /* Sky blue */
+    font-weight: 600;
+  }
+
+  /* Dark mode special styling for Python import-related */
+  .dark .code-block[data-language="python"] .token.keyword[content="import"],
+  .dark .code-block[data-language="python"] .token.keyword[content="from"],
+  .dark .code-block[data-language="python"] .token.keyword[content="as"],
+  .dark .code-block[data-language="py"] .token.keyword[content="import"],
+  .dark .code-block[data-language="py"] .token.keyword[content="from"],
+  .dark .code-block[data-language="py"] .token.keyword[content="as"] {
+    color: #34d399; /* Emerald */
+    font-weight: 600;
+  }
+
+  .code-block[data-language="python"] .token.string,
+  .code-block[data-language="py"] .token.string {
+    color: #a31515;
+  }
+
+  .dark .code-block[data-language="python"] .token.string,
+  .dark .code-block[data-language="py"] .token.string {
+    color: #ce9178;
+  }
+
+  .code-block[data-language="python"] .token.function,
+  .code-block[data-language="py"] .token.function {
+    color: #795e26;
+  }
+
+  .dark .code-block[data-language="python"] .token.function,
+  .dark .code-block[data-language="py"] .token.function {
+    color: #dcdcaa;
+  }
+
+  /* HTML/XML */
+  .code-block[data-language="html"] .token.tag,
+  .code-block[data-language="xml"] .token.tag {
+    color: #800000;
+  }
+
+  .dark .code-block[data-language="html"] .token.tag,
+  .dark .code-block[data-language="xml"] .token.tag {
+    color: #569cd6;
+  }
+
+  .code-block[data-language="html"] .token.attr-name,
+  .code-block[data-language="xml"] .token.attr-name {
+    color: #ff0000;
+  }
+
+  .dark .code-block[data-language="html"] .token.attr-name,
+  .dark .code-block[data-language="xml"] .token.attr-name {
+    color: #9cdcfe;
+  }
+
+  /* CSS */
+  .code-block[data-language="css"] .token.property {
+    color: #ff0000;
+  }
+
+  .dark .code-block[data-language="css"] .token.property {
+    color: #9cdcfe;
+  }
+
+  .code-block[data-language="css"] .token.selector {
+    color: #800000;
+  }
+
+  .dark .code-block[data-language="css"] .token.selector {
+    color: #d7ba7d;
+  }
+
+  /* Add special effects for specific syntax elements */
+  .markdown-content .token.keyword {
+    @apply relative;
+    text-shadow: 0 0 1px rgba(56, 189, 248, 0.2);
+  }
+
+  .markdown-content .token.function {
+    @apply relative;
+    text-shadow: 0 0 1px rgba(244, 63, 94, 0.2);
+  }
+
+  .markdown-content .token.string {
+    @apply relative;
+    text-shadow: 0 0 1px rgba(34, 197, 94, 0.2);
+  }
+
+  .markdown-content .token.number {
+    @apply relative;
+    text-shadow: 0 0 1px rgba(99, 102, 241, 0.2);
+  }
+
+  /* Add subtle animation for important tokens */
+  .markdown-content .token.important {
+    animation: pulse-subtle 2s infinite;
+  }
+
+  @keyframes pulse-subtle {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.85;
+    }
+  }
+
+  /* Custom scrollbar styling for code blocks */
+  /* Firefox */
+  .code-block pre {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.3) rgba(229, 231, 235, 0.05);
+  }
+
+  .dark .code-block pre {
+    scrollbar-color: rgba(75, 85, 99, 0.3) rgba(31, 41, 55, 0.05);
+  }
+
+  /* Chrome, Edge, Safari */
+  .code-block pre::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .code-block pre::-webkit-scrollbar-track {
+    @apply bg-gray-100 bg-opacity-5 dark:bg-gray-800 dark:bg-opacity-5 rounded-full;
+  }
+
+  .code-block pre::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 bg-opacity-30 dark:bg-gray-600 dark:bg-opacity-30 rounded-full;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+
+  .code-block pre::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500 bg-opacity-50 dark:bg-gray-500 dark:bg-opacity-50;
+  }
+}
