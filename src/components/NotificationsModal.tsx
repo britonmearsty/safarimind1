@@ -174,7 +174,8 @@ const NotificationsModal = ({ isOpen, onClose }: NotificationsModalProps) => {
             filteredNotifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`p-4 rounded-lg border ${
+                onClick={() => markAsRead(notification.id)}
+                className={`p-4 rounded-lg border cursor-pointer ${
                   notification.read
                     ? "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
                     : "border-blue-200 dark:border-blue-900/50 bg-blue-50 dark:bg-blue-900/20"
@@ -228,7 +229,10 @@ const NotificationsModal = ({ isOpen, onClose }: NotificationsModalProps) => {
         {/* Mark all as read button */}
         {notifications.some((n) => !n.read) && (
           <div className="flex justify-center">
-            <button className="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors">
+            <button
+              onClick={markAllAsRead}
+              className="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
+            >
               Mark all as read
             </button>
           </div>

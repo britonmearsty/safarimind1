@@ -1,5 +1,5 @@
 import Modal from "./Modal";
-import { AlertTriangle, Check, ChevronDown, Paperclip, X } from "lucide-react";
+import { Check, ChevronDown, Paperclip, X } from "lucide-react";
 import { useState, useRef } from "react";
 
 type ReportIssueModalProps = {

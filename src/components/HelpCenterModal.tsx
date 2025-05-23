@@ -7,7 +7,7 @@ import {
   MessageCircle,
   ExternalLink,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 type HelpCenterModalProps = {
   isOpen: boolean;
@@ -17,7 +17,7 @@ type HelpCenterModalProps = {
 type HelpCategory = {
   id: string;
   title: string;
-  icon: JSX.Element;
+  icon: React.ReactNode;
   description: string;
 };
 

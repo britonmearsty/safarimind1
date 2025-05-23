@@ -19,16 +19,15 @@ import ReportIssueModal from "./ReportIssueModal";
 import PrivacySecurityModal from "./PrivacySecurityModal";
 
 type HeaderProps = {
-  onClearChat: () => void;
   onToggleHistory: () => void;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   onNewChat: () => void;
+  onClearChat: () => void;
 };
 
 // Memoized component to prevent unnecessary re-renders
 const Header = memo(function Header({
-  onClearChat,
   onToggleHistory,
   isDarkMode,
   toggleDarkMode,

@@ -34,16 +34,10 @@ import {
 } from "./services/googleGenAIService";
 
 // Import the legacy Gemini service as a fallback
-import {
-  sendMessageToGemini as legacySendMessageToGemini,
-  formatMessagesForGemini as legacyFormatMessagesForGemini,
-} from "./services/geminiService";
+import { sendMessageToGemini as legacySendMessageToGemini } from "./services/geminiService";
 
 // Import the mock service as a last resort fallback
-import {
-  sendMessageToGemini as mockSendMessageToGemini,
-  formatMessagesForGemini as mockFormatMessagesForGemini,
-} from "./services/mockGeminiService";
+import { sendMessageToGemini as mockSendMessageToGemini } from "./services/mockGeminiService";
 
 // Function to generate AI responses using multiple AI services with fallbacks
 const generateAIResponse = async (
@@ -376,6 +370,8 @@ export default function App() {
   }, []);
 
   // Message action handlers
+  // Commented out to fix TypeScript errors - can be re-enabled when needed
+  /*
   const handleEditMessage = useCallback(
     (messageId: string, newContent: string) => {
       setMessages((prev) =>
@@ -386,7 +382,10 @@ export default function App() {
     },
     []
   );
+  */
 
+  // Commented out to fix TypeScript errors - can be re-enabled when needed
+  /*
   const handleRegenerateResponse = useCallback(
     (messageId: string) => {
       // Find the user message that triggered this AI response
@@ -454,8 +453,11 @@ export default function App() {
             try {
               // Try the legacy Gemini service first
               console.log("Trying legacy Gemini service for regeneration...");
+              const localMessageHistory = messages
+                .filter((msg) => !msg.isTyping && msg.id !== messageId)
+                .slice(0, userMessageIndex + 1);
               const legacyMessages = legacyFormatMessagesForGemini([
-                ...messageHistory,
+                ...localMessageHistory,
                 { content: userMessage.content, isUser: true },
               ]);
               const legacyResponse = await legacySendMessageToGemini(
@@ -490,8 +492,11 @@ export default function App() {
               // Try the mock service as a last resort
               try {
                 console.log("Trying mock service for regeneration...");
+                const localMessageHistory = messages
+                  .filter((msg) => !msg.isTyping && msg.id !== messageId)
+                  .slice(0, userMessageIndex + 1);
                 const mockMessages = mockFormatMessagesForGemini([
-                  ...messageHistory,
+                  ...localMessageHistory,
                   { content: userMessage.content, isUser: true },
                 ]);
                 const mockResponse = await mockSendMessageToGemini(
@@ -537,7 +542,10 @@ export default function App() {
     },
     [messages]
   );
+  */
 
+  // Commented out to fix TypeScript errors - can be re-enabled when needed
+  /*
   const handleExportPdf = useCallback(
     (messageId: string) => {
       // Find the message to export
@@ -558,13 +566,17 @@ export default function App() {
     },
     [messages]
   );
+  */
 
   // Toggle panels
   // Memoized to prevent unnecessary re-renders
+  // Commented out to fix TypeScript errors - can be re-enabled when needed
+  /*
   const toggleSettings = useCallback(() => {
     setIsSettingsOpen((prev) => !prev);
     if (isHistoryOpen) setIsHistoryOpen(false);
   }, [isHistoryOpen]);
+  */
 
   const toggleHistory = useCallback(() => {
     setIsHistoryOpen((prev) => !prev);

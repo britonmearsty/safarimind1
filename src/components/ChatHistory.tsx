@@ -62,7 +62,7 @@ const ChatHistory = memo(function ChatHistory({
   onClose,
   messages,
 }: ChatHistoryProps) {
-  const { showToast } = useToast();
+  // const { showToast } = useToast(); // Commented out as it's not used
   const modalRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [selectedChat, setSelectedChat] = useState<ChatItem | null>(null);
@@ -90,7 +90,7 @@ const ChatHistory = memo(function ChatHistory({
     "Ideas",
     "Follow-up",
   ]);
-  const [availableCategories, setAvailableCategories] = useState<string[]>([
+  const [availableCategories] = useState<string[]>([
     "General",
     "Work",
     "Personal",
@@ -133,7 +133,7 @@ const ChatHistory = memo(function ChatHistory({
         }
 
         // Generate random tags and category for demo purposes
-        const randomTags = [];
+        const randomTags: string[] = [];
         const numTags = Math.floor(Math.random() * 3); // 0-2 tags
         for (let t = 0; t < numTags; t++) {
           const randomTag =

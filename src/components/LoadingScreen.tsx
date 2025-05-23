@@ -1,5 +1,3 @@
-import { useEffect } from "react";
-
 const LoadingScreen = () => {
   return (
     <div className="fixed inset-0 flex flex-col items-center justify-center bg-white dark:bg-gray-900 z-50">

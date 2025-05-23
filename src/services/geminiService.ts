@@ -39,7 +39,6 @@ const GEMINI_MODELS = [
 
 // Start with the first model
 let currentModelIndex = 0;
-const API_URL = GEMINI_MODELS[currentModelIndex].url;
 
 // Log the API key status (not the actual key for security)
 console.log(
@@ -200,7 +199,6 @@ export async function sendMessageToGemini(
   };
 
   // Try each API key and model combination until one works
-  let lastError = null;
 
   // Start with the most recently successful API key and model
   const keyIndices = Array.from(
@@ -287,7 +285,7 @@ export async function sendMessageToGemini(
               console.error("Could not get error details");
             }
           }
-          lastError = new Error(
+          console.error(
             `API Error (${response.status}): ${
               errorDetails || response.statusText
             }`
@@ -295,7 +293,7 @@ export async function sendMessageToGemini(
         }
       } catch (error) {
         console.error(`Error with model ${model.name}:`, error);
-        lastError = error;
+        // Continue to the next model
       }
     }
 
@@ -377,6 +375,9 @@ export async function sendMessageToGemini(
     // Generic fallback response
     return "I apologize, but I'm having trouble connecting to my knowledge base right now. Your question is important, and I'd be happy to help once the connection is restored.";
   }
+
+  // Final fallback if all attempts fail
+  return "I'm sorry, but I couldn't process your request at this time. Please try again later.";
 }
 
 /**

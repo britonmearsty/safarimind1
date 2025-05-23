@@ -1,6 +1,3 @@
-import fs from 'fs';
-import path from 'path';
-
 /**
  * Provides SafariMind's identity response when users ask about the chatbot
  * @returns The SafariMind identity markdown
@@ -24,8 +21,8 @@ I'm designed to be your helpful companion, bringing a unique East African perspe
 
 _Powered by Kenyan innovation, built to explore knowledge together._`;
   } catch (error) {
-    console.error('Error reading SafariMind identity file:', error);
-    return '# SafariMind\n\nI am SafariMind, an AI assistant developed by Cheruu, a Kenyan tech company.';
+    console.error("Error reading SafariMind identity file:", error);
+    return "# SafariMind\n\nI am SafariMind, an AI assistant developed by Cheruu, a Kenyan tech company.";
   }
 }
 
@@ -36,24 +33,24 @@ _Powered by Kenyan innovation, built to explore knowledge together._`;
  */
 export function isAskingAboutIdentity(message: string): boolean {
   const lowerMessage = message.toLowerCase();
-  
+
   // Keywords and phrases that indicate identity questions
   const identityKeywords = [
-    'who are you',
-    'what are you',
-    'tell me about yourself',
-    'your name',
-    'introduce yourself',
-    'what is your purpose',
-    'what can you do',
-    'who made you',
-    'who created you',
-    'what is safarimind',
-    'what\'s safarimind',
-    'tell me about safarimind',
-    'about you',
-    'what do you do',
+    "who are you",
+    "what are you",
+    "tell me about yourself",
+    "your name",
+    "introduce yourself",
+    "what is your purpose",
+    "what can you do",
+    "who made you",
+    "who created you",
+    "what is safarimind",
+    "what's safarimind",
+    "tell me about safarimind",
+    "about you",
+    "what do you do",
   ];
-  
-  return identityKeywords.some(keyword => lowerMessage.includes(keyword));
+
+  return identityKeywords.some((keyword) => lowerMessage.includes(keyword));
 }

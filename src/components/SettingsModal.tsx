@@ -1,5 +1,5 @@
 import Modal from "./Modal";
-import { Moon, Sun, Globe, Lock, Eye, Bell, Volume2, Zap } from "lucide-react";
+import { Moon, Sun, Globe, Lock, Eye, Bell, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
 
 type SettingsModalProps = {

@@ -377,7 +377,9 @@ export default function ChatInput({
           <span id="input-help" className="text-gray-400 dark:text-gray-500">
             {disabled ? "AI is thinking..." : ""}
           </span>
-          <span className="hidden">{charsRemaining} characters remaining</span>
+          <span className={getCharCountClass()}>
+            {charsRemaining} characters remaining
+          </span>
         </div>
       </div>
     </div>
