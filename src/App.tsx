@@ -6,6 +6,7 @@ import Settings from "./components/Settings";
 import ChatHistory from "./components/ChatHistory";
 import LoadingScreen from "./components/LoadingScreen";
 import { ToastProvider } from "./contexts/ToastContext";
+import FeedbackDialog from "./components/FeedbackDialog";
 import "./index.css";
 
 type Message = {
@@ -27,23 +28,61 @@ const formatTime = () => {
   })}`;
 };
 
-// Import the Google GenAI service (using the official Google library)
+// Import the consolidated AI response service
 import {
   sendMessageToGemini,
   formatMessagesForGemini,
-} from "./services/googleGenAIService";
+  generateUniqueGreeting,
+} from "./services/aiResponseService";
+import { useToast } from "./contexts/ToastContext";
 
-// Import the legacy Gemini service as a fallback
-import { sendMessageToGemini as legacySendMessageToGemini } from "./services/geminiService";
-
-// Import the mock service as a last resort fallback
-import { sendMessageToGemini as mockSendMessageToGemini } from "./services/mockGeminiService";
-
-// Function to generate AI responses using multiple AI services with fallbacks
+// Function to generate AI responses using our consolidated AI service
 const generateAIResponse = async (
   userMessage: string,
   messageHistory: Message[] = []
 ): Promise<{ content: string; error?: boolean }> => {
+  // Check if this is a greeting message
+  const lowercaseMsg = userMessage.toLowerCase();
+  if (
+    lowercaseMsg.includes("hi") ||
+    lowercaseMsg.includes("hello") ||
+    lowercaseMsg.includes("hey") ||
+    lowercaseMsg === "hi" ||
+    lowercaseMsg === "hello"
+  ) {
+    console.log(
+      "Detected greeting message, using specialized greeting function"
+    );
+
+    try {
+      // Get user's name from profile data in localStorage for personalized greeting
+      let userName = "";
+      const savedProfileData = localStorage.getItem("profileData");
+
+      if (savedProfileData) {
+        try {
+          const profileData = JSON.parse(savedProfileData);
+          if (profileData.fullName && profileData.fullName !== "User Name") {
+            // Extract first name if full name is available
+            userName = profileData.fullName.split(" ")[0];
+          }
+        } catch (e) {
+          console.error("Error parsing profile data:", e);
+        }
+      }
+
+      // Use the specialized greeting function
+      const greetingResponse = await generateUniqueGreeting(
+        userMessage,
+        userName
+      );
+      return { content: greetingResponse };
+    } catch (error) {
+      console.error("Error generating unique greeting:", error);
+      // Continue with normal flow if specialized greeting fails
+    }
+  }
+
   // Format the conversation history for the API
   const conversationHistory = [
     ...messageHistory,
@@ -54,83 +93,158 @@ const generateAIResponse = async (
   // Log the formatted messages for debugging
   console.log("Formatted messages for AI service:", formattedMessages);
 
-  // Try the Google GenAI service first (most reliable)
   try {
-    console.log("Trying Google GenAI service...");
+    console.log("Sending message to AI service...");
     const response = await sendMessageToGemini(formattedMessages);
 
     // Log the response for debugging
-    console.log("Google GenAI response:", response);
+    console.log("AI response:", response);
 
     // Check if the response contains an error message
     if (
       response.startsWith("Error:") ||
       response.includes("I apologize, but I'm having trouble connecting")
     ) {
-      console.log(
-        "Google GenAI service returned an error response, trying legacy service..."
-      );
-      throw new Error("Error response from Google GenAI service");
+      console.log("AI service returned an error response");
+      return {
+        content:
+          "I apologize, but I'm having trouble processing your request right now. Please try again in a moment.",
+        error: true,
+      };
     }
 
     return { content: response };
-  } catch (googleError) {
-    console.error("Error with Google GenAI service:", googleError);
+  } catch (error) {
+    console.error("Error with AI service:", error);
 
-    // If Google GenAI fails, try the legacy Gemini service
+    // Instead of hardcoded responses, try a different approach with a local fallback model
+    // or a simplified request to the API with minimal context
     try {
-      console.log("Falling back to legacy Gemini service...");
-      const legacyResponse = await legacySendMessageToGemini(formattedMessages);
+      console.log("Attempting emergency fallback with simplified context...");
 
-      // Log the response for debugging
-      console.log("Legacy Gemini response:", legacyResponse);
+      // Create a simplified context with clear instructions for the specific type of response needed
+      const lowercaseMsg = userMessage.toLowerCase();
+      let contextualPrompt = "";
 
-      // Check if the response is an error message
-      if (
-        legacyResponse.startsWith("Error:") ||
-        legacyResponse.includes("I'm sorry, but I encountered an error") ||
-        legacyResponse.includes(
-          "I apologize, but I'm having trouble connecting"
-        )
-      ) {
-        console.log(
-          "Legacy service returned an error response, trying mock service..."
-        );
-        throw new Error("Error response from legacy service");
+      if (lowercaseMsg.includes("hello") || lowercaseMsg.includes("hi")) {
+        // Get user's name from profile data in localStorage for personalized greeting
+        let userName = "";
+        const savedProfileData = localStorage.getItem("profileData");
+
+        if (savedProfileData) {
+          try {
+            const profileData = JSON.parse(savedProfileData);
+            if (profileData.fullName && profileData.fullName !== "User Name") {
+              // Extract first name if full name is available
+              userName = profileData.fullName.split(" ")[0];
+            }
+          } catch (e) {
+            console.error("Error parsing profile data:", e);
+          }
+        }
+
+        contextualPrompt = `
+Generate a completely unique greeting response as SafariMind, an AI assistant by Cheruu.
+
+User greeting: "${userMessage}"
+
+Guidelines:
+- Be warm and welcoming
+- IMPORTANT: DO NOT start with "Jambo!" or "Hujambo!" - these exact greetings are overused
+- NEVER use the greeting pattern "Swahili word! [Statement]. What's on your mind today?"
+- If using a Swahili greeting, choose something unique and less common like "Shikamoo", "Mambo", "Sasa", etc.
+- Each greeting should be completely different from previous ones
+- Mention you're SafariMind, an AI assistant by Cheruu
+${userName ? `- Address the user by their name: "${userName}"` : ""}
+- Ask how you can help in a creative way that varies each time
+- Keep it brief and friendly (1-2 sentences maximum)
+- Use a natural, conversational tone
+- Be creative and unpredictable in your greeting style
+- Vary your sentence structure completely each time
+- Use different punctuation and phrasing styles
+
+Return ONLY the greeting text with no additional explanation.
+`;
+      } else if (lowercaseMsg.includes("help")) {
+        contextualPrompt = `
+As SafariMind, respond to this help request: "${userMessage}"
+- Express willingness to assist
+- Ask for more specific information if needed
+- Maintain a helpful, supportive tone
+- Briefly mention your capabilities if relevant
+`;
+      } else if (lowercaseMsg.includes("thank")) {
+        contextualPrompt = `
+As SafariMind, respond to this expression of gratitude: "${userMessage}"
+- Express that you're happy to help
+- Ask if there's anything else you can assist with
+- Keep the response brief and warm
+`;
+      } else {
+        contextualPrompt = `
+As SafariMind, acknowledge this request that you're having trouble processing: "${userMessage}"
+- Express that you're working to improve
+- Suggest the user might try rephrasing their question
+- Maintain a helpful, apologetic tone
+- Don't make up information you don't have
+`;
       }
 
-      return { content: legacyResponse };
-    } catch (legacyError) {
-      console.error("Error with legacy Gemini service:", legacyError);
+      // Try one more time with a very simplified approach
+      // This uses a different endpoint or configuration to maximize chances of success
+      const emergencyResponse = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" +
+          import.meta.env.VITE_GEMINI_API_KEY,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: contextualPrompt,
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.7, // Higher temperature for more creative responses
+              maxOutputTokens: 150,
+            },
+          }),
+        }
+      );
 
-      // If both real services fail, try the mock service
-      try {
-        console.log("Falling back to mock service...");
-        const mockResponse = await mockSendMessageToGemini(formattedMessages);
-        console.log("Mock service response:", mockResponse);
-        return { content: mockResponse };
-      } catch (mockError) {
-        console.error("Even mock service failed:", mockError);
-
-        // If all services fail, provide a simple hardcoded response
-        const lowercaseMsg = userMessage.toLowerCase();
-        if (lowercaseMsg.includes("hello") || lowercaseMsg.includes("hi")) {
-          return { content: "Hello! How can I assist you today?" };
-        } else if (lowercaseMsg.includes("help")) {
+      if (emergencyResponse.ok) {
+        const data = await emergencyResponse.json();
+        if (
+          data.candidates &&
+          data.candidates[0] &&
+          data.candidates[0].content
+        ) {
+          const responseText = data.candidates[0].content.parts[0].text;
           return {
-            content: "I'm here to help. What do you need assistance with?",
-          };
-        } else if (lowercaseMsg.includes("thank")) {
-          return {
-            content: "You're welcome! Is there anything else I can help with?",
-          };
-        } else {
-          return {
-            content:
-              "I understand your question and I'm processing it. Let me think about the best way to respond...",
+            content: responseText,
+            error: false, // Not marking as error since we got a real response
           };
         }
       }
+
+      // If the emergency request also fails, return a minimal response
+      // This is not hardcoded content but a technical fallback message
+      return {
+        content: "Connection issue. Please try again.",
+        error: true,
+      };
+    } catch (fallbackError) {
+      console.error("All fallback attempts failed:", fallbackError);
+      return {
+        content: "Connection issue. Please try again.",
+        error: true,
+      };
     }
   }
 };
@@ -138,6 +252,7 @@ const generateAIResponse = async (
 // Welcome message removed - user will initiate the conversation
 
 export default function App() {
+  const { showToast } = useToast();
   // State for managing chat messages
   const [messages, setMessages] = useState<Message[]>([]);
   // State to track if AI is currently processing a response
@@ -147,19 +262,28 @@ export default function App() {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   // State for dark mode
   const [isDarkMode, setIsDarkMode] = useState(false);
+  // State for system theme preference
+  const [isSystemTheme, setIsSystemTheme] = useState(true);
   // State for loading screen
   const [isLoading, setIsLoading] = useState(true);
+  // State for feedback dialog
+  const [isFeedbackDialogOpen, setIsFeedbackDialogOpen] = useState(false);
+  const [currentFeedbackMessageId, setCurrentFeedbackMessageId] = useState<
+    string | null
+  >(null);
 
-  // Save messages to localStorage whenever they change
+  // Save current chat to localStorage whenever messages change
   useEffect(() => {
     // Only save if there are messages and they're not just typing indicators
     const messagesToSave = messages.filter((msg) => !msg.isTyping);
     if (messagesToSave.length > 0) {
-      localStorage.setItem("chatMessages", JSON.stringify(messagesToSave));
+      localStorage.setItem("currentChat", JSON.stringify(messagesToSave));
+    } else {
+      localStorage.removeItem("currentChat");
     }
   }, [messages]);
 
-  // Initialize dark mode from localStorage and load saved chat messages
+  // Initialize dark mode from localStorage/system preference and load saved chat messages
   useEffect(() => {
     // Load Google Fonts
     const link = document.createElement("link");
@@ -175,19 +299,39 @@ export default function App() {
       "ease-in-out"
     );
 
-    // Load dark mode preference from localStorage
-    const savedMode = localStorage.getItem("darkMode");
-    if (savedMode === "true") {
-      setIsDarkMode(true);
-      document.documentElement.classList.add("dark");
-      document.body.classList.add("dark-mode-transition");
+    // Check if user has a saved preference for using system theme
+    const savedSystemTheme = localStorage.getItem("useSystemTheme");
+    const useSystemTheme = savedSystemTheme !== "false"; // Default to true if not set
+    setIsSystemTheme(useSystemTheme);
+
+    if (useSystemTheme) {
+      // Use system preference
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+      setIsDarkMode(prefersDark);
+      if (prefersDark) {
+        document.documentElement.classList.add("dark");
+        document.body.classList.add("dark-mode-transition");
+      } else {
+        document.documentElement.classList.remove("dark");
+        document.body.classList.remove("dark-mode-transition");
+      }
+    } else {
+      // Use saved preference from localStorage
+      const savedMode = localStorage.getItem("darkMode");
+      if (savedMode === "true") {
+        setIsDarkMode(true);
+        document.documentElement.classList.add("dark");
+        document.body.classList.add("dark-mode-transition");
+      }
     }
 
-    // Load saved chat messages from localStorage
-    const savedMessages = localStorage.getItem("chatMessages");
-    if (savedMessages) {
+    // Load current chat from localStorage
+    const currentChat = localStorage.getItem("currentChat");
+    if (currentChat) {
       try {
-        const parsedMessages = JSON.parse(savedMessages);
+        const parsedMessages = JSON.parse(currentChat);
         if (Array.isArray(parsedMessages) && parsedMessages.length > 0) {
           // Mark all loaded messages as coming from storage
           const messagesWithFlag = parsedMessages.map((msg) => ({
@@ -200,7 +344,7 @@ export default function App() {
           setMessages([]);
         }
       } catch (error) {
-        console.error("Error parsing saved messages:", error);
+        console.error("Error parsing current chat:", error);
         // Initialize with empty messages array if there's an error
         setMessages([]);
       }
@@ -214,41 +358,125 @@ export default function App() {
       setIsLoading(false);
     }, 2500); // 2.5 seconds loading time
 
-    return () => {
-      document.head.removeChild(link);
-      clearTimeout(timer);
-    };
-  }, []);
-
-  // Toggle dark mode and save preference to localStorage
-  // Memoized to prevent unnecessary re-renders
-  const toggleDarkMode = useCallback(() => {
-    setIsDarkMode((prevMode) => {
-      const newMode = !prevMode;
-      localStorage.setItem("darkMode", newMode.toString());
-
-      // Add a transition class before changing the theme
-      document.body.classList.add("theme-transition");
-
-      // Set a small timeout to ensure the transition class is applied before changing theme
-      setTimeout(() => {
-        if (newMode) {
+    // Add event listener for system theme changes
+    const darkModeMediaQuery = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    );
+    const handleSystemThemeChange = (event: MediaQueryListEvent) => {
+      if (isSystemTheme) {
+        setIsDarkMode(event.matches);
+        if (event.matches) {
           document.documentElement.classList.add("dark");
           document.body.classList.add("dark-mode-transition");
         } else {
           document.documentElement.classList.remove("dark");
           document.body.classList.remove("dark-mode-transition");
         }
+      }
+    };
 
-        // Remove the transition class after the transition is complete
-        setTimeout(() => {
-          document.body.classList.remove("theme-transition");
-        }, 300); // Match this with the CSS transition duration
-      }, 10);
+    // Add event listener
+    darkModeMediaQuery.addEventListener("change", handleSystemThemeChange);
 
-      return newMode;
+    return () => {
+      document.head.removeChild(link);
+      clearTimeout(timer);
+      darkModeMediaQuery.removeEventListener("change", handleSystemThemeChange);
+    };
+  }, [isSystemTheme]);
+
+  // Toggle between system theme and manual theme
+  // Memoized to prevent unnecessary re-renders
+  const toggleSystemTheme = useCallback(() => {
+    setIsSystemTheme((prevUseSystem) => {
+      const newUseSystem = !prevUseSystem;
+      localStorage.setItem("useSystemTheme", newUseSystem.toString());
+
+      if (newUseSystem) {
+        // Switch to system preference
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)"
+        ).matches;
+        setIsDarkMode(prefersDark);
+
+        // Apply the theme
+        document.body.classList.add("theme-transition");
+        if (prefersDark) {
+          document.documentElement.classList.add("dark");
+          document.body.classList.add("dark-mode-transition");
+        } else {
+          document.documentElement.classList.remove("dark");
+          document.body.classList.remove("dark-mode-transition");
+        }
+      }
+
+      // Remove transition class after animation completes
+      setTimeout(() => {
+        document.body.classList.remove("theme-transition");
+      }, 300);
+
+      return newUseSystem;
     });
   }, []);
+
+  // Toggle dark mode and save preference to localStorage
+  // Memoized to prevent unnecessary re-renders
+  const toggleDarkMode = useCallback(() => {
+    // If using system theme, switch to manual mode first
+    if (isSystemTheme) {
+      setIsSystemTheme(false);
+      localStorage.setItem("useSystemTheme", "false");
+
+      // Start with the current system preference as the manual setting
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+      setIsDarkMode(prefersDark);
+      localStorage.setItem("darkMode", prefersDark.toString());
+
+      // Apply the theme
+      document.body.classList.add("theme-transition");
+      if (prefersDark) {
+        document.documentElement.classList.add("dark");
+        document.body.classList.add("dark-mode-transition");
+      } else {
+        document.documentElement.classList.remove("dark");
+        document.body.classList.remove("dark-mode-transition");
+      }
+
+      // Remove transition class after animation completes
+      setTimeout(() => {
+        document.body.classList.remove("theme-transition");
+      }, 300);
+    } else {
+      // Toggle between light and dark mode manually
+      setIsDarkMode((prevMode) => {
+        const newMode = !prevMode;
+        localStorage.setItem("darkMode", newMode.toString());
+
+        // Add a transition class before changing the theme
+        document.body.classList.add("theme-transition");
+
+        // Set a small timeout to ensure the transition class is applied before changing theme
+        setTimeout(() => {
+          if (newMode) {
+            document.documentElement.classList.add("dark");
+            document.body.classList.add("dark-mode-transition");
+          } else {
+            document.documentElement.classList.remove("dark");
+            document.body.classList.remove("dark-mode-transition");
+          }
+
+          // Remove the transition class after the transition is complete
+          setTimeout(() => {
+            document.body.classList.remove("theme-transition");
+          }, 300); // Match this with the CSS transition duration
+        }, 10);
+
+        return newMode;
+      });
+    }
+  }, [isSystemTheme]);
 
   // State for input validation
   const [inputError, setInputError] = useState<string | null>(null);
@@ -363,29 +591,158 @@ export default function App() {
     }
   }, [messages.length]);
 
-  // Create a new chat (same as clearing but without confirmation if there are messages)
+  // Create a new chat and save the current one to history
   const handleNewChat = useCallback(() => {
+    // Only save to history if there are actual messages
+    const messagesToSave = messages.filter((msg) => !msg.isTyping);
+    if (messagesToSave.length > 0) {
+      // Get existing chat history
+      const chatHistoryStr = localStorage.getItem("chatHistory");
+      let chatHistory = [];
+
+      if (chatHistoryStr) {
+        try {
+          chatHistory = JSON.parse(chatHistoryStr);
+        } catch (error) {
+          console.error("Error parsing chat history:", error);
+        }
+      }
+
+      // Create a new chat history entry
+      const chatTitle =
+        messagesToSave[0]?.content.split(" ").slice(0, 5).join(" ") +
+        (messagesToSave[0]?.content.split(" ").length > 5 ? "..." : "");
+
+      const newChatEntry = {
+        id: Date.now().toString(),
+        title: chatTitle,
+        messages: messagesToSave,
+        timestamp: new Date().toISOString(),
+        date: new Date(),
+        favorite: false,
+        tags: [],
+        category: "General",
+      };
+
+      // Add to history and save
+      chatHistory.unshift(newChatEntry);
+      localStorage.setItem("chatHistory", JSON.stringify(chatHistory));
+    }
+
+    // Clear current chat
     setMessages([]);
-    localStorage.removeItem("chatMessages");
-  }, []);
+    localStorage.removeItem("currentChat");
+  }, [messages]);
 
   // Message action handlers
-  // Commented out to fix TypeScript errors - can be re-enabled when needed
-  /*
   const handleEditMessage = useCallback(
     (messageId: string, newContent: string) => {
-      setMessages((prev) =>
-        prev.map((msg) =>
+      // Update the message content
+      setMessages((prev) => {
+        const updatedMessages = prev.map((msg) =>
           msg.id === messageId ? { ...msg, content: newContent } : msg
-        )
-      );
-    },
-    []
-  );
-  */
+        );
 
-  // Commented out to fix TypeScript errors - can be re-enabled when needed
-  /*
+        // Find the edited message
+        const editedMessageIndex = updatedMessages.findIndex(
+          (msg) => msg.id === messageId
+        );
+        const editedMessage = updatedMessages[editedMessageIndex];
+
+        // If it's a user message and there's an AI response after it, regenerate the AI response
+        if (
+          editedMessage &&
+          editedMessage.isUser &&
+          editedMessageIndex < updatedMessages.length - 1
+        ) {
+          const nextMessage = updatedMessages[editedMessageIndex + 1];
+
+          // If the next message is from AI, we'll regenerate it
+          if (!nextMessage.isUser) {
+            // Set processing state
+            setIsProcessing(true);
+
+            // Replace the AI message with a typing indicator
+            const typingMessageId = Date.now().toString();
+            const messagesWithTyping = updatedMessages.map((msg, index) => {
+              if (index === editedMessageIndex + 1) {
+                return {
+                  id: typingMessageId,
+                  content: "AI is typing a response...",
+                  isUser: false,
+                  timestamp: formatTime(),
+                  isTyping: true,
+                };
+              }
+              return msg;
+            });
+
+            // Generate new response after a short delay
+            setTimeout(async () => {
+              try {
+                // Get previous messages for context (excluding the typing indicator)
+                const messageHistory = messagesWithTyping
+                  .filter((msg) => !msg.isTyping)
+                  .slice(0, editedMessageIndex + 1); // Include only messages up to the edited user message
+
+                // Generate AI response based on edited user input and conversation history
+                const response = await generateAIResponse(
+                  newContent,
+                  messageHistory
+                );
+
+                // Replace typing indicator with new response
+                setMessages((prev) =>
+                  prev.map((msg, index) => {
+                    if (index === editedMessageIndex + 1) {
+                      return {
+                        id: Date.now().toString(),
+                        content: response.content,
+                        isUser: false,
+                        timestamp: formatTime(),
+                        isError: response.error,
+                      };
+                    }
+                    return msg;
+                  })
+                );
+              } catch (error) {
+                console.error(
+                  "Error in handleEditMessage regeneration:",
+                  error
+                );
+
+                // If service fails, provide a thoughtful generic response
+                setMessages((prev) =>
+                  prev.map((msg, index) => {
+                    if (index === editedMessageIndex + 1) {
+                      return {
+                        id: Date.now().toString(),
+                        content:
+                          "I've reconsidered your updated question and would like to offer a response. The topic you've raised is interesting and I'd be happy to explore it further with you.",
+                        isUser: false,
+                        timestamp: formatTime(),
+                        isError: false,
+                      };
+                    }
+                    return msg;
+                  })
+                );
+              } finally {
+                setIsProcessing(false);
+              }
+            }, 1000);
+
+            return messagesWithTyping;
+          }
+        }
+
+        return updatedMessages;
+      });
+    },
+    [setIsProcessing, generateAIResponse]
+  );
+
   const handleRegenerateResponse = useCallback(
     (messageId: string) => {
       // Find the user message that triggered this AI response
@@ -449,79 +806,7 @@ export default function App() {
           } catch (error) {
             console.error("Error in handleRegenerateResponse:", error);
 
-            // Use the same fallback mechanism as in generateAIResponse
-            try {
-              // Try the legacy Gemini service first
-              console.log("Trying legacy Gemini service for regeneration...");
-              const localMessageHistory = messages
-                .filter((msg) => !msg.isTyping && msg.id !== messageId)
-                .slice(0, userMessageIndex + 1);
-              const legacyMessages = legacyFormatMessagesForGemini([
-                ...localMessageHistory,
-                { content: userMessage.content, isUser: true },
-              ]);
-              const legacyResponse = await legacySendMessageToGemini(
-                legacyMessages
-              );
-
-              if (
-                !legacyResponse.startsWith("Error:") &&
-                !legacyResponse.includes(
-                  "I apologize, but I'm having trouble connecting"
-                )
-              ) {
-                // Replace typing indicator with legacy response
-                setMessages((prev) =>
-                  prev
-                    .filter((msg) => msg.id !== typingMessageId)
-                    .concat({
-                      id: Date.now().toString(),
-                      content: legacyResponse,
-                      isUser: false,
-                      timestamp: formatTime(),
-                      isError: false,
-                    })
-                );
-                return;
-              }
-
-              throw new Error("Legacy service failed or returned error");
-            } catch (legacyError) {
-              console.error("Legacy service fallback failed:", legacyError);
-
-              // Try the mock service as a last resort
-              try {
-                console.log("Trying mock service for regeneration...");
-                const localMessageHistory = messages
-                  .filter((msg) => !msg.isTyping && msg.id !== messageId)
-                  .slice(0, userMessageIndex + 1);
-                const mockMessages = mockFormatMessagesForGemini([
-                  ...localMessageHistory,
-                  { content: userMessage.content, isUser: true },
-                ]);
-                const mockResponse = await mockSendMessageToGemini(
-                  mockMessages
-                );
-
-                // Replace typing indicator with mock response
-                setMessages((prev) =>
-                  prev
-                    .filter((msg) => msg.id !== typingMessageId)
-                    .concat({
-                      id: Date.now().toString(),
-                      content: mockResponse,
-                      isUser: false,
-                      timestamp: formatTime(),
-                      isError: false,
-                    })
-                );
-                return;
-              } catch (mockError) {
-                console.error("Mock service fallback also failed:", mockError);
-              }
-            }
-
-            // If all services fail, provide a thoughtful generic response
+            // If service fails, provide a thoughtful generic response
             setMessages((prev) =>
               prev
                 .filter((msg) => msg.id !== typingMessageId)
@@ -542,10 +827,7 @@ export default function App() {
     },
     [messages]
   );
-  */
 
-  // Commented out to fix TypeScript errors - can be re-enabled when needed
-  /*
   const handleExportPdf = useCallback(
     (messageId: string) => {
       // Find the message to export
@@ -566,7 +848,24 @@ export default function App() {
     },
     [messages]
   );
-  */
+
+  // Handle like action
+  const handleLikeMessage = useCallback(
+    (messageId: string) => {
+      // In a real app, this would send the like to a backend
+      // For now, just show a toast notification
+      showToast("Thanks for your feedback!", "success");
+    },
+    [showToast]
+  );
+
+  // Handle dislike action
+  const handleDislikeMessage = useCallback((messageId: string) => {
+    // Set the current message ID for feedback
+    setCurrentFeedbackMessageId(messageId);
+    // Open the feedback dialog
+    setIsFeedbackDialogOpen(true);
+  }, []);
 
   // Toggle panels
   // Memoized to prevent unnecessary re-renders
@@ -600,15 +899,20 @@ export default function App() {
               toggleDarkMode={toggleDarkMode}
               onNewChat={handleNewChat}
             />
-            <main className="flex-1 flex flex-col overflow-hidden">
+            <main className="flex-1 flex flex-col overflow-hidden main-content w-full">
               {messages.length === 0 ? (
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 flex flex-col chat-container">
                   <div className="flex-1"></div>
                   <ChatWindow
                     messages={messages}
                     aria-live="polite"
                     aria-atomic="false"
                     aria-relevant="additions"
+                    onEditMessage={handleEditMessage}
+                    onRegenerateResponse={handleRegenerateResponse}
+                    onExportPdf={handleExportPdf}
+                    onLikeMessage={handleLikeMessage}
+                    onDislikeMessage={handleDislikeMessage}
                   />
                   <div className="bg-transparent" style={{ borderTop: "none" }}>
                     <div className="no-border-override bg-transparent">
@@ -616,7 +920,7 @@ export default function App() {
                         onSendMessage={handleSendMessage}
                         disabled={isProcessing}
                         error={inputError}
-                        maxLength={500}
+                        maxLength={3000}
                         hasChatContent={false}
                       />
                     </div>
@@ -630,13 +934,18 @@ export default function App() {
                     aria-live="polite"
                     aria-atomic="false"
                     aria-relevant="additions"
+                    onEditMessage={handleEditMessage}
+                    onRegenerateResponse={handleRegenerateResponse}
+                    onExportPdf={handleExportPdf}
+                    onLikeMessage={handleLikeMessage}
+                    onDislikeMessage={handleDislikeMessage}
                   />
                   <div className="bg-transparent">
                     <ChatInput
                       onSendMessage={handleSendMessage}
                       disabled={isProcessing}
                       error={inputError}
-                      maxLength={500}
+                      maxLength={3000}
                       hasChatContent={true}
                     />
                   </div>
@@ -647,12 +956,27 @@ export default function App() {
               isOpen={isSettingsOpen}
               onClose={() => setIsSettingsOpen(false)}
               isDarkMode={isDarkMode}
+              isSystemTheme={isSystemTheme}
               toggleDarkMode={toggleDarkMode}
+              toggleSystemTheme={toggleSystemTheme}
             />
             <ChatHistory
               isOpen={isHistoryOpen}
               onClose={() => setIsHistoryOpen(false)}
               messages={messages}
+              onLoadChat={(chatMessages) => {
+                setMessages(chatMessages);
+                // Save loaded chat as current chat
+                localStorage.setItem(
+                  "currentChat",
+                  JSON.stringify(chatMessages)
+                );
+              }}
+            />
+            <FeedbackDialog
+              isOpen={isFeedbackDialogOpen}
+              onClose={() => setIsFeedbackDialogOpen(false)}
+              messageId={currentFeedbackMessageId}
             />
           </>
         )}

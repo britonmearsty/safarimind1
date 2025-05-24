@@ -48,6 +48,10 @@ const Header = memo(function Header({
   const [isPrivacySecurityModalOpen, setIsPrivacySecurityModalOpen] =
     useState(false);
 
+  // User profile states
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("User Name");
+
   // Handle click outside to close profile menu
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -86,6 +90,20 @@ const Header = memo(function Header({
     };
   }, [isProfileMenuOpen]);
 
+  // Load profile data from localStorage
+  useEffect(() => {
+    const savedProfilePicture = localStorage.getItem("profilePicture");
+    if (savedProfilePicture) {
+      setProfilePicture(savedProfilePicture);
+    }
+
+    const savedProfileData = localStorage.getItem("profileData");
+    if (savedProfileData) {
+      const data = JSON.parse(savedProfileData);
+      setUserName(data.fullName);
+    }
+  }, [isProfileModalOpen]); // Re-run when profile modal is closed
+
   // Handle opening modals from dropdown menu
   const handleOpenProfileModal = () => {
     setIsProfileModalOpen(true);
@@ -119,7 +137,7 @@ const Header = memo(function Header({
 
   return (
     <>
-      <header className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 bg-transparent backdrop-blur-sm">
+      <header className="flex items-center justify-between px-2 sm:px-4 py-1.5 sm:py-2.5 bg-transparent backdrop-blur-sm sticky top-0 z-10">
         <div className="flex items-center">
           <div className="flex items-center space-x-2">
             <div className="flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full">
@@ -202,37 +220,41 @@ const Header = memo(function Header({
           {/* Quick theme toggle button */}
           <button
             onClick={toggleDarkMode}
-            className="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none"
+            className="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             aria-label={
               isDarkMode ? "Switch to light mode" : "Switch to dark mode"
             }
             title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
           >
             {isDarkMode ? (
-              <Sparkles size={16} className="text-yellow-400 sm:hidden" />
+              <>
+                <Sparkles size={14} className="text-yellow-400 sm:hidden" />
+                <Sparkles
+                  size={16}
+                  className="text-yellow-400 hidden sm:block"
+                />
+              </>
             ) : (
-              <Sparkles size={16} className="text-blue-600 sm:hidden" />
-            )}
-            {isDarkMode ? (
-              <Sparkles size={18} className="text-yellow-400 hidden sm:block" />
-            ) : (
-              <Sparkles size={18} className="text-blue-600 hidden sm:block" />
+              <>
+                <Sparkles size={14} className="text-blue-600 sm:hidden" />
+                <Sparkles size={16} className="text-blue-600 hidden sm:block" />
+              </>
             )}
           </button>
 
           <button
             onClick={onToggleHistory}
-            className="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none"
+            className="p-1.5 sm:p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             aria-label="View chat history"
             aria-controls="history-modal"
             title="View chat history"
           >
             <History
-              size={16}
+              size={14}
               className="text-gray-600 dark:text-gray-400 sm:hidden"
             />
             <History
-              size={18}
+              size={16}
               className="text-gray-600 dark:text-gray-400 hidden sm:block"
             />
           </button>
@@ -242,60 +264,28 @@ const Header = memo(function Header({
             <button
               ref={profileButtonRef}
               onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
-              className="flex items-center space-x-0 sm:space-x-1 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none"
+              className="flex items-center space-x-0 sm:space-x-1 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors focus:outline-none"
               aria-label="Profile menu"
               aria-expanded={isProfileMenuOpen}
               aria-controls="profile-dropdown"
               title="Profile menu"
             >
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  x="0px"
-                  y="0px"
-                  width="100%"
-                  height="100%"
-                  viewBox="0 0 48 48"
-                >
-                  <radialGradient
-                    id="profileButtonGradient1"
-                    cx="-670.437"
-                    cy="617.13"
-                    r=".041"
-                    gradientTransform="matrix(128.602 652.9562 653.274 -128.6646 -316906.281 517189.719)"
-                    gradientUnits="userSpaceOnUse"
-                  >
-                    <stop offset="0" stop-color="#1ba1e3"></stop>
-                    <stop offset="0" stop-color="#1ba1e3"></stop>
-                    <stop offset=".3" stop-color="#5489d6"></stop>
-                    <stop offset=".545" stop-color="#9b72cb"></stop>
-                    <stop offset=".825" stop-color="#d96570"></stop>
-                    <stop offset="1" stop-color="#f49c46"></stop>
-                  </radialGradient>
-                  <path
-                    fill="url(#profileButtonGradient1)"
-                    d="M22.882,31.557l-1.757,4.024c-0.675,1.547-2.816,1.547-3.491,0l-1.757-4.024	c-1.564-3.581-4.378-6.432-7.888-7.99l-4.836-2.147c-1.538-0.682-1.538-2.919,0-3.602l4.685-2.08	c3.601-1.598,6.465-4.554,8.002-8.258l1.78-4.288c0.66-1.591,2.859-1.591,3.52,0l1.78,4.288c1.537,3.703,4.402,6.659,8.002,8.258	l4.685,2.08c1.538,0.682,1.538,2.919,0,3.602l-4.836,2.147C27.26,25.126,24.446,27.976,22.882,31.557z"
-                  ></path>
-                  <radialGradient
-                    id="profileButtonGradient2"
-                    cx="-670.437"
-                    cy="617.13"
-                    r=".041"
-                    gradientTransform="matrix(128.602 652.9562 653.274 -128.6646 -316906.281 517189.719)"
-                    gradientUnits="userSpaceOnUse"
-                  >
-                    <stop offset="0" stop-color="#1ba1e3"></stop>
-                    <stop offset="0" stop-color="#1ba1e3"></stop>
-                    <stop offset=".3" stop-color="#5489d6"></stop>
-                    <stop offset=".545" stop-color="#9b72cb"></stop>
-                    <stop offset=".825" stop-color="#d96570"></stop>
-                    <stop offset="1" stop-color="#f49c46"></stop>
-                  </radialGradient>
-                  <path
-                    fill="url(#profileButtonGradient2)"
-                    d="M39.21,44.246l-0.494,1.132	c-0.362,0.829-1.51,0.829-1.871,0l-0.494-1.132c-0.881-2.019-2.467-3.627-4.447-4.506l-1.522-0.676	c-0.823-0.366-0.823-1.562,0-1.928l1.437-0.639c2.03-0.902,3.645-2.569,4.511-4.657l0.507-1.224c0.354-0.853,1.533-0.853,1.886,0	l0.507,1.224c0.866,2.088,2.481,3.755,4.511,4.657l1.437,0.639c0.823,0.366,0.823,1.562,0,1.928l-1.522,0.676	C41.677,40.619,40.091,42.227,39.21,44.246z"
-                  ></path>
-                </svg>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center overflow-hidden profile-picture">
+                {profilePicture ? (
+                  // If user has a profile picture, display it
+                  <img
+                    src={profilePicture}
+                    alt={userName}
+                    className="w-full h-full object-cover profile-exempt"
+                  />
+                ) : (
+                  // If no profile picture, display user's initial in a colored circle
+                  <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium profile-initial">
+                    <span className="profile-exempt">
+                      {userName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
               </div>
               <ChevronDown
                 size={12}
@@ -312,72 +302,43 @@ const Header = memo(function Header({
               <div
                 id="profile-dropdown"
                 ref={profileMenuRef}
-                className="absolute right-0 mt-2 w-56 sm:w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50 animate-scaleIn"
+                className="absolute right-0 mt-2 w-56 sm:w-64 bg-white dark:bg-[#080E21] rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50 animate-scaleIn"
                 role="menu"
               >
                 {/* User info section */}
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        x="0px"
-                        y="0px"
-                        width="100%"
-                        height="100%"
-                        viewBox="0 0 48 48"
-                      >
-                        <radialGradient
-                          id="profileDropdownGradient1"
-                          cx="-670.437"
-                          cy="617.13"
-                          r=".041"
-                          gradientTransform="matrix(128.602 652.9562 653.274 -128.6646 -316906.281 517189.719)"
-                          gradientUnits="userSpaceOnUse"
-                        >
-                          <stop offset="0" stop-color="#1ba1e3"></stop>
-                          <stop offset="0" stop-color="#1ba1e3"></stop>
-                          <stop offset=".3" stop-color="#5489d6"></stop>
-                          <stop offset=".545" stop-color="#9b72cb"></stop>
-                          <stop offset=".825" stop-color="#d96570"></stop>
-                          <stop offset="1" stop-color="#f49c46"></stop>
-                        </radialGradient>
-                        <path
-                          fill="url(#profileDropdownGradient1)"
-                          d="M22.882,31.557l-1.757,4.024c-0.675,1.547-2.816,1.547-3.491,0l-1.757-4.024	c-1.564-3.581-4.378-6.432-7.888-7.99l-4.836-2.147c-1.538-0.682-1.538-2.919,0-3.602l4.685-2.08	c3.601-1.598,6.465-4.554,8.002-8.258l1.78-4.288c0.66-1.591,2.859-1.591,3.52,0l1.78,4.288c1.537,3.703,4.402,6.659,8.002,8.258	l4.685,2.08c1.538,0.682,1.538,2.919,0,3.602l-4.836,2.147C27.26,25.126,24.446,27.976,22.882,31.557z"
-                        ></path>
-                        <radialGradient
-                          id="profileDropdownGradient2"
-                          cx="-670.437"
-                          cy="617.13"
-                          r=".041"
-                          gradientTransform="matrix(128.602 652.9562 653.274 -128.6646 -316906.281 517189.719)"
-                          gradientUnits="userSpaceOnUse"
-                        >
-                          <stop offset="0" stop-color="#1ba1e3"></stop>
-                          <stop offset="0" stop-color="#1ba1e3"></stop>
-                          <stop offset=".3" stop-color="#5489d6"></stop>
-                          <stop offset=".545" stop-color="#9b72cb"></stop>
-                          <stop offset=".825" stop-color="#d96570"></stop>
-                          <stop offset="1" stop-color="#f49c46"></stop>
-                        </radialGradient>
-                        <path
-                          fill="url(#profileDropdownGradient2)"
-                          d="M39.21,44.246l-0.494,1.132	c-0.362,0.829-1.51,0.829-1.871,0l-0.494-1.132c-0.881-2.019-2.467-3.627-4.447-4.506l-1.522-0.676	c-0.823-0.366-0.823-1.562,0-1.928l1.437-0.639c2.03-0.902,3.645-2.569,4.511-4.657l0.507-1.224c0.354-0.853,1.533-0.853,1.886,0	l0.507,1.224c0.866,2.088,2.481,3.755,4.511,4.657l1.437,0.639c0.823,0.366,0.823,1.562,0,1.928l-1.522,0.676	C41.677,40.619,40.091,42.227,39.21,44.246z"
-                        ></path>
-                      </svg>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden profile-picture">
+                      {profilePicture ? (
+                        // If user has a profile picture, display it
+                        <img
+                          src={profilePicture}
+                          alt={userName}
+                          className="w-full h-full object-cover profile-exempt"
+                        />
+                      ) : (
+                        // If no profile picture, display user's initial in a colored circle
+                        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium text-lg profile-initial">
+                          <span className="profile-exempt">
+                            {userName.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-800 dark:text-white">
-                        User Name
+                    <div className="profile-exempt">
+                      <p className="font-medium text-gray-800 dark:text-white profile-exempt">
+                        {userName}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        user@example.com
+                      <p className="text-xs text-gray-500 dark:text-gray-400 profile-exempt">
+                        {localStorage.getItem("profileData")
+                          ? JSON.parse(
+                              localStorage.getItem("profileData") || "{}"
+                            ).email
+                          : "user@example.com"}
                       </p>
                     </div>
                   </div>
                 </div>
-
                 {/* Account section */}
                 <div className="py-1 px-2">
                   <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -414,7 +375,6 @@ const Header = memo(function Header({
                     <span>Notifications</span>
                   </button>
                 </div>
-
                 {/* Support section */}
                 <div className="py-1 px-2 border-t border-gray-200 dark:border-gray-700">
                   <div className="px-2 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -451,7 +411,6 @@ const Header = memo(function Header({
                     <span>Privacy & Security</span>
                   </button>
                 </div>
-
                 {/* Sign out section */}
                 <div className="py-1 px-2 border-t border-gray-200 dark:border-gray-700">
                   <button className="flex items-center w-full px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors">

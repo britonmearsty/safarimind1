@@ -20,7 +20,7 @@ export default function ChatInput({
   onSendMessage,
   disabled = false,
   error = null,
-  maxLength = 500,
+  maxLength = 3000,
   hasChatContent = false,
 }: ChatInputProps) {
   const [message, setMessage] = useState("");
@@ -192,40 +192,47 @@ export default function ChatInput({
 
   // Character count class based on remaining characters
   const getCharCountClass = () => {
-    if (charsRemaining <= 20)
+    if (charsRemaining <= 100)
       return "text-red-500 dark:text-red-400 font-semibold";
-    if (charsRemaining <= 50) return "text-amber-500 dark:text-amber-400";
+    if (charsRemaining <= 300) return "text-amber-500 dark:text-amber-400";
     return "text-gray-400 dark:text-gray-500";
   };
 
   return (
     <div
-      className={`px-2 sm:px-4 py-2 sm:py-3 ${
+      className={`px-1 sm:px-2 md:px-4 py-1 sm:py-2 md:py-3 ${
         !hasChatContent ? "border-t border-gray-200 dark:border-gray-700" : ""
-      } bg-transparent`}
+      } bg-transparent sticky bottom-0 z-10`}
     >
-      <div className="mx-auto max-w-full sm:max-w-4xl relative px-1 sm:px-2">
+      <div className="mx-auto max-w-full sm:max-w-4xl relative px-0.5 sm:px-1 md:px-2">
         {/* Example prompts row - only show when there's no chat content */}
         {message === "" && !disabled && !hasChatContent && (
-          <div className="mb-2 sm:mb-3 flex flex-wrap gap-1.5 sm:gap-2 justify-center">
+          <div className="mb-1.5 sm:mb-2 md:mb-3 flex flex-wrap gap-1 sm:gap-1.5 justify-center">
             {examplePrompts.map((prompt, index) => (
               <button
                 key={index}
                 onClick={() => insertExamplePrompt(prompt)}
-                className="px-2 sm:px-3 py-1 sm:py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors flex items-center"
+                className="px-1.5 sm:px-2 md:px-3 py-0.5 sm:py-1 md:py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-[10px] sm:text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors flex items-center"
                 aria-label={`Try example: ${prompt}`}
               >
                 <Sparkles
+                  size={8}
+                  className="mr-0.5 sm:hidden"
+                  aria-hidden="true"
+                />
+                <Sparkles
                   size={10}
-                  className="mr-1 sm:hidden"
+                  className="mr-1 hidden sm:block md:hidden"
                   aria-hidden="true"
                 />
                 <Sparkles
                   size={12}
-                  className="mr-1 hidden sm:block"
+                  className="mr-1 hidden md:block"
                   aria-hidden="true"
                 />
-                {prompt}
+                <span className="truncate max-w-[120px] sm:max-w-[150px] md:max-w-none">
+                  {prompt}
+                </span>
               </button>
             ))}
           </div>
@@ -235,12 +242,12 @@ export default function ChatInput({
         {error && (
           <div
             role="alert"
-            className="mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2 p-1.5 sm:p-2 text-xs sm:text-sm text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md"
+            className="mb-1.5 sm:mb-2 md:mb-3 flex items-center gap-1 sm:gap-1.5 p-1 sm:p-1.5 md:p-2 text-[10px] sm:text-xs md:text-sm text-red-500 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-md"
           >
-            <AlertTriangle size={14} className="sm:hidden" aria-hidden="true" />
+            <AlertTriangle size={12} className="md:hidden" aria-hidden="true" />
             <AlertTriangle
-              size={16}
-              className="hidden sm:block"
+              size={14}
+              className="hidden md:block"
               aria-hidden="true"
             />
             <span>{error}</span>
@@ -263,7 +270,7 @@ export default function ChatInput({
             error ? "border-red-500 dark:border-red-500" : ""
           } ${
             disabled ? "opacity-75" : ""
-          } transition-all duration-200 overflow-hidden`}
+          } transition-all duration-200 overflow-hidden shadow-sm w-full`}
         >
           {/* Main input area */}
           <div className="flex items-end">
@@ -273,7 +280,7 @@ export default function ChatInput({
             <textarea
               ref={textareaRef}
               id="chat-input"
-              className="flex-grow w-full p-2 sm:p-3 bg-transparent outline-none resize-none text-sm sm:text-base text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hide-scrollbar"
+              className="flex-grow w-full p-1.5 sm:p-2 md:p-3 bg-transparent outline-none resize-none text-sm md:text-base text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 hide-scrollbar"
               placeholder={
                 disabled ? "AI is thinking..." : "Type your message..."
               }
@@ -288,7 +295,7 @@ export default function ChatInput({
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             />
             <button
-              className={`p-1.5 sm:p-2 m-1 rounded-md ${
+              className={`p-1 sm:p-1.5 md:p-2 m-0.5 sm:m-1 rounded-md ${
                 disabled
                   ? "bg-blue-100 dark:bg-blue-900/30 text-blue-500 dark:text-blue-300"
                   : message.trim() && message.length <= maxLength
@@ -304,19 +311,24 @@ export default function ChatInput({
             >
               {disabled ? (
                 <div
-                  className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-t-transparent border-blue-400 dark:border-blue-300 rounded-full animate-spin"
+                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4 border-2 border-t-transparent border-blue-400 dark:border-blue-300 rounded-full animate-spin"
                   aria-hidden="true"
                 />
               ) : (
                 <>
                   <SendHorizontal
-                    size={14}
+                    size={12}
                     className="sm:hidden"
                     aria-hidden="true"
                   />
                   <SendHorizontal
+                    size={14}
+                    className="hidden sm:block md:hidden"
+                    aria-hidden="true"
+                  />
+                  <SendHorizontal
                     size={16}
-                    className="hidden sm:block"
+                    className="hidden md:block"
                     aria-hidden="true"
                   />
                 </>
@@ -325,22 +337,23 @@ export default function ChatInput({
           </div>
 
           {/* Action buttons row - now part of the same container */}
-          <div className="flex items-center px-1 sm:px-2 py-0.5 sm:py-1 space-x-0.5 sm:space-x-1">
+          <div className="flex items-center px-0.5 sm:px-1 md:px-2 py-0.5 sm:py-0.5 md:py-1 space-x-0.5 sm:space-x-1">
             {/* Attach file button */}
             <button
-              className="p-1.5 sm:p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-1 sm:p-1.5 md:p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               onClick={handleAttachClick}
               disabled={disabled}
               aria-label="Attach file"
               title="Attach file"
             >
-              <Paperclip size={16} className="sm:hidden" />
-              <Paperclip size={18} className="hidden sm:block" />
+              <Paperclip size={12} className="md:hidden" />
+              <Paperclip size={14} className="hidden md:block lg:hidden" />
+              <Paperclip size={16} className="hidden lg:block" />
             </button>
 
             {/* Deep think button */}
             <button
-              className={`p-1.5 sm:p-2 rounded-md transition-colors ${
+              className={`p-1 sm:p-1.5 md:p-2 rounded-md transition-colors ${
                 isDeepThinkActive
                   ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20"
                   : "text-gray-500 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -350,13 +363,14 @@ export default function ChatInput({
               aria-label="Deep thinking mode"
               title="Deep thinking mode"
             >
-              <Brain size={16} className="sm:hidden" />
-              <Brain size={18} className="hidden sm:block" />
+              <Brain size={12} className="md:hidden" />
+              <Brain size={14} className="hidden md:block lg:hidden" />
+              <Brain size={16} className="hidden lg:block" />
             </button>
 
             {/* Deep search button */}
             <button
-              className={`p-1.5 sm:p-2 rounded-md transition-colors ${
+              className={`p-1 sm:p-1.5 md:p-2 rounded-md transition-colors ${
                 isDeepSearchActive
                   ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20"
                   : "text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800"
@@ -366,19 +380,23 @@ export default function ChatInput({
               aria-label="Deep search mode"
               title="Deep search mode"
             >
-              <Search size={16} className="sm:hidden" />
-              <Search size={18} className="hidden sm:block" />
+              <Search size={12} className="md:hidden" />
+              <Search size={14} className="hidden md:block lg:hidden" />
+              <Search size={16} className="hidden lg:block" />
             </button>
           </div>
         </div>
 
         {/* Character counter and help text */}
-        <div className="mt-2 flex justify-between text-xs">
+        <div className="mt-1 sm:mt-1.5 md:mt-2 flex justify-between text-[10px] sm:text-xs">
           <span id="input-help" className="text-gray-400 dark:text-gray-500">
             {disabled ? "AI is thinking..." : ""}
           </span>
           <span className={getCharCountClass()}>
-            {charsRemaining} characters remaining
+            <span className="sm:hidden">{charsRemaining} chars left</span>
+            <span className="hidden sm:inline">
+              {charsRemaining} characters remaining
+            </span>
           </span>
         </div>
       </div>

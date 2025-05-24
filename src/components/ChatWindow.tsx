@@ -1,4 +1,4 @@
-import { useRef, useEffect, memo } from "react";
+import { useRef, useEffect, useState, memo } from "react";
 import ChatMessage from "./ChatMessage";
 
 type Message = {
@@ -32,6 +32,8 @@ type ChatWindowProps = {
   onEditMessage?: (messageId: string, newContent: string) => void;
   onRegenerateResponse?: (messageId: string) => void;
   onExportPdf?: (messageId: string) => void;
+  onLikeMessage?: (messageId: string) => void;
+  onDislikeMessage?: (messageId: string) => void;
 };
 
 // Memoized component to prevent unnecessary re-renders
@@ -43,6 +45,8 @@ const ChatWindow = memo(function ChatWindow({
   onEditMessage,
   onRegenerateResponse,
   onExportPdf,
+  onLikeMessage,
+  onDislikeMessage,
 }: ChatWindowProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -86,6 +90,47 @@ const ChatWindow = memo(function ChatWindow({
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
+  }, []);
+
+  // State for welcome message with username
+  const [welcomeMessage, setWelcomeMessage] = useState<string>(
+    "Hello! I'm SafariMind. How can I help you today?"
+  );
+  const [isLoadingWelcome, setIsLoadingWelcome] = useState<boolean>(true);
+
+  // Load simple welcome message with username on component mount
+  useEffect(() => {
+    const loadWelcomeMessage = () => {
+      try {
+        setIsLoadingWelcome(true);
+        // Get user's name from profile data in localStorage
+        const savedProfileData = localStorage.getItem("profileData");
+        let userName = "Briton";
+
+        if (savedProfileData) {
+          try {
+            const profileData = JSON.parse(savedProfileData);
+            if (profileData.fullName && profileData.fullName !== "User Name") {
+              // Extract first name if full name is available
+              userName = profileData.fullName.split(" ")[0];
+            }
+          } catch (e) {
+            console.error("Error parsing profile data:", e);
+          }
+        }
+
+        // Set a simple welcome message with the username
+        setWelcomeMessage(`Hello ${userName}!`);
+      } catch (error) {
+        console.error("Error loading welcome message:", error);
+        // Fallback message if there's an error
+        setWelcomeMessage("Hello!");
+      } finally {
+        setIsLoadingWelcome(false);
+      }
+    };
+
+    loadWelcomeMessage();
   }, []);
 
   // Render empty state when no messages
@@ -141,15 +186,25 @@ const ChatWindow = memo(function ChatWindow({
             ></path>
           </svg>
         </div>
-        <h2
-          className="text-lg font-medium text-gray-700 dark:text-gray-200 mb-2"
-          tabIndex={0}
-        >
-          How can I help you today?
-        </h2>
+        {isLoadingWelcome ? (
+          <h2
+            className="text-lg font-medium text-gray-700 dark:text-gray-200 mb-2"
+            tabIndex={0}
+          >
+            Loading...
+          </h2>
+        ) : (
+          <div className="text-center">
+            <div
+              className="text-lg font-medium text-gray-700 dark:text-gray-200 mb-2"
+              tabIndex={0}
+              dangerouslySetInnerHTML={{ __html: welcomeMessage }}
+            />
+          </div>
+        )}
         <p className="text-sm text-gray-500 dark:text-gray-400 text-center max-w-md">
-          Ask me anything! I can help with information, creative tasks,
-          problem-solving, and more.
+          Ask me anything! I can help with information, problem-solving, and
+          more.
         </p>
       </div>
     );
@@ -167,7 +222,7 @@ const ChatWindow = memo(function ChatWindow({
       aria-label="Chat conversation"
     >
       <div
-        className="py-2 sm:py-4 md:py-6 w-full max-w-full px-2 sm:px-4 md:px-6 sm:max-w-4xl mx-auto"
+        className="py-1 sm:py-3 md:py-5 w-full max-w-full px-1 sm:px-3 md:px-5 sm:max-w-4xl mx-auto space-y-2 sm:space-y-3 md:space-y-4"
         role="list"
       >
         {messages.map((message) => (
@@ -186,8 +241,8 @@ const ChatWindow = memo(function ChatWindow({
               onRegenerateResponse && onRegenerateResponse(message.id)
             }
             onExportPdf={() => onExportPdf && onExportPdf(message.id)}
-            onLike={() => console.log(`Liked message: ${message.id}`)}
-            onDislike={() => console.log(`Disliked message: ${message.id}`)}
+            onLike={() => onLikeMessage && onLikeMessage(message.id)}
+            onDislike={() => onDislikeMessage && onDislikeMessage(message.id)}
           />
         ))}
       </div>

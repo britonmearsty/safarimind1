@@ -15,6 +15,7 @@ import {
 import { useState, useRef, memo, useCallback, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useToast } from "../contexts/ToastContext";
 
 type MessageProps = {
   content: string;
@@ -177,6 +178,9 @@ const ChatMessage = memo(function ChatMessage({
     }
   };
 
+  // Get toast context
+  const { showToast } = useToast();
+
   // Handle share
   const handleShare = async () => {
     try {
@@ -187,7 +191,7 @@ const ChatMessage = memo(function ChatMessage({
         });
       } else {
         await navigator.clipboard.writeText(content);
-        alert("Content copied to clipboard for sharing");
+        showToast("Content copied to clipboard for sharing", "success");
       }
     } catch (err) {
       console.error("Failed to share: ", err);
@@ -263,7 +267,7 @@ const ChatMessage = memo(function ChatMessage({
     // Use ReactMarkdown for AI responses, but keep plain text for user messages
     if (isUser) {
       return (
-        <p className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed text-xs">
+        <p className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed text-xs sm:text-sm break-words">
           {content}
         </p>
       );
@@ -271,7 +275,7 @@ const ChatMessage = memo(function ChatMessage({
       // No blinking cursor needed
 
       return (
-        <div className="markdown-content text-gray-800 dark:text-gray-200 text-sm text-justify">
+        <div className="markdown-content text-gray-800 dark:text-gray-200 text-xs sm:text-sm break-words">
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -334,10 +338,10 @@ const ChatMessage = memo(function ChatMessage({
 
                 // Extremely simplified code blocks - single container with minimal styling
                 return (
-                  <div className="my-3">
+                  <div className="my-2 sm:my-3">
                     {/* Single code block container with language header and copy button */}
                     <div
-                      className="code-block rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden bg-transparent dark:bg-transparent"
+                      className="code-block rounded-md border border-gray-200 dark:border-gray-700 overflow-hidden bg-transparent dark:bg-transparent max-w-full"
                       data-language={language || "code"}
                     >
                       {/* Header with language and copy button */}
@@ -453,19 +457,19 @@ const ChatMessage = memo(function ChatMessage({
     <div
       className={`flex ${
         isUser ? "justify-end" : "justify-start"
-      } px-1 sm:px-3 md:px-6 py-2 sm:py-3 md:py-4`}
+      } px-0.5 sm:px-2 md:px-4 py-1 sm:py-2 md:py-3`}
       aria-label={`${isUser ? "Your message" : "AI message"}`}
     >
       <div
         className={`flex ${
           isUser
-            ? "max-w-[90%] sm:max-w-[75%] md:max-w-[60%] flex-row-reverse"
-            : "max-w-[90%] sm:max-w-[80%] md:max-w-[75%] flex-row"
-        } gap-1 sm:gap-2 md:gap-3 items-start animate-fadeIn`}
+            ? "max-w-[95%] sm:max-w-[85%] md:max-w-[75%] flex-row-reverse"
+            : "max-w-[95%] sm:max-w-[90%] md:max-w-[85%] flex-row"
+        } gap-0.5 sm:gap-2 items-start animate-fadeIn`}
         role="listitem"
       >
         <div
-          className={`flex items-center justify-center w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full flex-shrink-0 ${
+          className={`flex items-center justify-center w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full flex-shrink-0 ${
             isUser
               ? "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300"
               : isError
@@ -475,31 +479,37 @@ const ChatMessage = memo(function ChatMessage({
           aria-hidden="true"
         >
           {isUser ? (
-            <User size={12} className="sm:w-4 sm:h-4 md:w-4 md:h-4" />
+            <>
+              <User size={10} className="md:hidden" />
+              <User size={12} className="hidden md:block" />
+            </>
           ) : (
-            <Bot size={12} className="sm:w-4 sm:h-4 md:w-4 md:h-4" />
+            <>
+              <Bot size={10} className="md:hidden" />
+              <Bot size={12} className="hidden md:block" />
+            </>
           )}
         </div>
 
         <div
           className={`${
             isUser
-              ? "bg-transparent dark:bg-transparent text-gray-800 dark:text-gray-100 rounded-xl sm:rounded-2xl rounded-tr-sm border border-blue-200/50 dark:border-blue-700/30 px-2 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2"
-              : "bg-transparent dark:bg-transparent text-gray-800 dark:text-gray-200 rounded-xl sm:rounded-2xl rounded-tl-sm px-2 py-1.5 sm:px-3 sm:py-2 md:px-5 md:py-3"
-          } max-w-full break-words group`}
+              ? "bg-transparent dark:bg-transparent text-gray-800 dark:text-gray-100 rounded-lg sm:rounded-xl rounded-tr-sm border border-blue-200/50 dark:border-blue-700/30 px-1.5 py-1 sm:px-2.5 sm:py-2 md:px-3 md:py-2"
+              : "bg-transparent dark:bg-transparent text-gray-800 dark:text-gray-200 rounded-lg sm:rounded-xl rounded-tl-sm px-1.5 py-1 sm:px-2.5 sm:py-2 md:px-3 md:py-2.5"
+          } max-w-full break-words group w-full`}
           tabIndex={0}
         >
           <div
             className={`prose prose-xs ${
               isUser ? "prose-invert" : "dark:prose-invert"
-            } max-w-none text-xs sm:text-sm`}
+            } max-w-none text-xs sm:text-sm leading-relaxed overflow-hidden`}
             aria-live={!isUser && !isTyping ? "polite" : "off"}
           >
             <div ref={messageRef}>{renderContent()}</div>
 
             {/* Action buttons for user messages */}
             {isUser && !isTyping && !isEditing && (
-              <div className="mt-2 flex justify-end gap-0.5 text-gray-400 dark:text-gray-500 bg-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <div className="mt-1.5 sm:mt-2 flex justify-end gap-0.5 text-gray-400 dark:text-gray-500 bg-transparent rounded-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
                 <button
                   onClick={copyToClipboard}
                   className={`p-1 rounded-md inline-flex items-center text-xs ${
@@ -515,9 +525,31 @@ const ChatMessage = memo(function ChatMessage({
                   title={isCopied ? "Copied!" : "Copy to clipboard"}
                 >
                   {isCopied ? (
-                    <Check size={12} aria-hidden="true" />
+                    <>
+                      <Check
+                        size={10}
+                        className="sm:hidden"
+                        aria-hidden="true"
+                      />
+                      <Check
+                        size={12}
+                        className="hidden sm:block"
+                        aria-hidden="true"
+                      />
+                    </>
                   ) : (
-                    <Copy size={12} aria-hidden="true" />
+                    <>
+                      <Copy
+                        size={10}
+                        className="sm:hidden"
+                        aria-hidden="true"
+                      />
+                      <Copy
+                        size={12}
+                        className="hidden sm:block"
+                        aria-hidden="true"
+                      />
+                    </>
                   )}
                 </button>
 
@@ -527,26 +559,40 @@ const ChatMessage = memo(function ChatMessage({
                   aria-label="Edit message"
                   title="Edit message"
                 >
-                  <Edit size={12} aria-hidden="true" />
+                  <Edit size={10} className="sm:hidden" aria-hidden="true" />
+                  <Edit
+                    size={12}
+                    className="hidden sm:block"
+                    aria-hidden="true"
+                  />
                 </button>
               </div>
             )}
 
             {/* Action buttons for AI responses - only show when typing effect is complete */}
             {!isUser && !isTyping && !isError && !isTypingEffect && (
-              <div className="mt-2 flex flex-wrap justify-end gap-0.5 text-gray-500 dark:text-gray-400 bg-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <div className="mt-1.5 sm:mt-2 flex flex-wrap justify-end gap-0.5 text-gray-500 dark:text-gray-400 bg-transparent rounded-lg opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
                 <button
                   onClick={handleRegenerate}
                   className="p-1 rounded-md inline-flex items-center text-xs hover:bg-purple-100 dark:hover:bg-purple-900/30 hover:text-purple-600 dark:hover:text-purple-400 transition-colors focus:outline-none"
                   aria-label="Regenerate response"
                   title="Regenerate response"
                 >
-                  <RefreshCw size={12} aria-hidden="true" />
+                  <RefreshCw
+                    size={10}
+                    className="sm:hidden"
+                    aria-hidden="true"
+                  />
+                  <RefreshCw
+                    size={12}
+                    className="hidden sm:block"
+                    aria-hidden="true"
+                  />
                 </button>
 
                 <button
                   onClick={copyToClipboard}
-                  className={`p-1.5 rounded-md inline-flex items-center text-xs ${
+                  className={`p-1 rounded-md inline-flex items-center text-xs ${
                     isCopied
                       ? "text-green-500 dark:text-green-400"
                       : "hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-300"
@@ -559,9 +605,31 @@ const ChatMessage = memo(function ChatMessage({
                   title={isCopied ? "Copied!" : "Copy to clipboard"}
                 >
                   {isCopied ? (
-                    <Check size={12} aria-hidden="true" />
+                    <>
+                      <Check
+                        size={10}
+                        className="sm:hidden"
+                        aria-hidden="true"
+                      />
+                      <Check
+                        size={12}
+                        className="hidden sm:block"
+                        aria-hidden="true"
+                      />
+                    </>
                   ) : (
-                    <Copy size={12} aria-hidden="true" />
+                    <>
+                      <Copy
+                        size={10}
+                        className="sm:hidden"
+                        aria-hidden="true"
+                      />
+                      <Copy
+                        size={12}
+                        className="hidden sm:block"
+                        aria-hidden="true"
+                      />
+                    </>
                   )}
                 </button>
 

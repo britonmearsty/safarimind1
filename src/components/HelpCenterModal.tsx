@@ -8,6 +8,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
+import { useToast } from "../contexts/ToastContext";
 
 type HelpCenterModalProps = {
   isOpen: boolean;
@@ -30,6 +31,7 @@ type HelpArticle = {
 };
 
 const HelpCenterModal = ({ isOpen, onClose }: HelpCenterModalProps) => {
+  const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<HelpArticle | null>(
@@ -84,7 +86,10 @@ const HelpCenterModal = ({ isOpen, onClose }: HelpCenterModalProps) => {
   // Handle contact support
   const handleContactSupport = () => {
     // In a real app, this would open a support ticket form or chat
-    alert("Connecting to Cheruu Support for SafariMind AI assistance...");
+    showToast(
+      "Connecting to Cheruu Support for SafariMind AI assistance...",
+      "info"
+    );
   };
 
   // Help categories

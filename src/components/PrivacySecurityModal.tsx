@@ -32,6 +32,7 @@ const PrivacySecurityModal = ({
   });
   const [showPasswordResetSuccess, setShowPasswordResetSuccess] =
     useState(false);
+  //use toast
 
   // Handle data sharing toggle
   const handleDataSharingToggle = (setting: keyof typeof dataSharing) => {

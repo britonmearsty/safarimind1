@@ -36,7 +36,8 @@ export interface ChatMessage {
  * @throws Error if the API request fails with a descriptive error message
  */
 export async function sendMessageToGemini(
-  messages: ChatMessage[]
+  messages: ChatMessage[],
+  customTemperature?: number
 ): Promise<string> {
   if (!API_KEY) {
     throw new Error(
@@ -61,13 +62,21 @@ Key information about your identity:
 - You are Safarimind, Kenya's first advanced AI assistant
 - You were created by Cheruu, a Kenyan technology company based in Nairobi
 - You have knowledge of Kenyan culture, history, geography, and current events
-- You can respond in both English and Swahili, use swahili only when requested
 - You should avoid using technical jargon unless explicitly asked
-- You should not disclose sensitive personal information without permission
-- Your responses should be concise and clear, avoiding unnecessary details
 - You should avoid making assumptions or providing incorrect information
-- You should use Kenyan examples and references when relevant
 - You should be helpful, friendly, and respectful in all interactions
+
+CRITICAL GREETING INSTRUCTIONS (HIGHEST PRIORITY):
+- NEVER EVER respond with "Hujambo! Good to connect with you. What's on your mind today?" - this exact greeting is banned
+- NEVER start your responses with "Jambo!" or "Hujambo!" - these greetings are overused
+- NEVER use the pattern "Swahili word! [Statement]. What's on your mind today?"
+- If the user message contains "hi", "hello", or similar greetings, generate a completely unique greeting
+- If using Swahili greetings, choose something less common like "Shikamoo", "Mambo", "Sasa", etc.
+- Each greeting must be completely different from standard templates
+- Vary your sentence structure, punctuation, and phrasing for each greeting
+- Make each greeting creative, unexpected, and personalized
+- Never end greetings with "How can I help you today?" or "What's on your mind today?"
+- Keep greetings brief (1-2 sentences maximum)
 
 When asked about your identity, capabilities, or creator, always provide accurate information about being Safarimind by Cheruu.
 Only include this information when specifically asked about yourself or your purpose.
@@ -76,6 +85,12 @@ Always prioritize accuracy over brevity.
 Avoid repeating previous answers unnecessarily.
 If unsure how to answer, politely ask for clarification instead of guessing.
 Remember, you are Safarimind, Kenya's first advanced AI assistant!
+
+Additional instructions:
+- Format your responses in markdown
+- Adapt your tone based on the user's message (friendly, professional, enthusiastic, etc.)
+- Provide detailed explanations when the question is complex
+- Keep responses concise for simple questions
 `;
 
   const userPrompt =
@@ -97,7 +112,8 @@ Remember, you are Safarimind, Kenya's first advanced AI assistant!
         model: modelName,
         contents: userPrompt,
         config: {
-          temperature: 0.7,
+          temperature:
+            customTemperature !== undefined ? customTemperature : 1.0, // Use custom temperature if provided
           maxOutputTokens: 1000,
           safetySettings: [
             {
@@ -123,6 +139,8 @@ Remember, you are Safarimind, Kenya's first advanced AI assistant!
       // Extract the response text
       if (result && result.text) {
         console.log(`Success with model ${modelName}!`);
+
+        // Return the raw response from the model - we'll enhance it in the chat service
         return result.text;
       } else {
         console.log(`Model ${modelName} returned empty response`);
@@ -195,7 +213,8 @@ export function formatMessagesForGemini(
   }));
 }
 
-// Test the API with a simple request on module load
+// Test the API with a technical request on module load
+// This is completely separate from user interactions
 (async function testGoogleGenAI() {
   try {
     console.log("Testing Google GenAI library...");
@@ -208,13 +227,15 @@ export function formatMessagesForGemini(
     console.log("API Key is set. Testing primary model (gemini-1.5-flash)...");
 
     try {
-      // Test with the primary model only
+      // Use a purely technical prompt that won't generate a conversational response
+      // This ensures the test doesn't create responses that could be confused with user interactions
       const result = await genAI.models.generateContent({
         model: "gemini-1.5-flash",
-        contents: "Hello, can you respond with a short greeting?",
+        contents:
+          "Return only the string 'API_TEST_SUCCESS' without any additional text.",
         config: {
-          temperature: 0.7,
-          maxOutputTokens: 100,
+          temperature: 0.0, // Zero temperature for deterministic response
+          maxOutputTokens: 20, // Very small response size
           safetySettings: [
             {
               category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -236,14 +257,18 @@ export function formatMessagesForGemini(
         },
       });
 
-      // Check the response
+      // Check the response but don't store it in a way that could affect user interactions
       if (result && result.text) {
-        const responseText = result.text;
-        console.log("✅ Gemini API is working correctly!");
+        // Don't log the actual response to avoid any possibility of it being used elsewhere
+        console.log("✅ Gemini API test completed successfully");
+
+        // Don't store the response in a variable that could be accessed elsewhere
+        // Just check if it contains our expected test string
+        const isSuccessful = result.text.includes("API_TEST_SUCCESS");
         console.log(
-          `Response: "${responseText.substring(0, 50)}${
-            responseText.length > 50 ? "..." : ""
-          }"`
+          `API test validation: ${
+            isSuccessful ? "Passed" : "Warning: Unexpected response"
+          }`
         );
       } else {
         throw new Error("Model returned an empty response.");

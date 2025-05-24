@@ -1,6 +1,7 @@
 import Modal from "./Modal";
-import { Moon, Sun, Globe, Lock, Eye, Bell, Zap } from "lucide-react";
+import { Moon, Sun, Lock, Eye, Bell, Trash } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useToast } from "../contexts/ToastContext";
 
 type SettingsModalProps = {
   isOpen: boolean;
@@ -15,102 +16,84 @@ const SettingsModal = ({
   isDarkMode,
   toggleDarkMode,
 }: SettingsModalProps) => {
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState("appearance");
 
-  // State for appearance settings
-  const [fontSize, setFontSize] = useState("medium");
-  const [colorTheme, setColorTheme] = useState("blue");
+  // Current applied settings
+  const [currentSettings, setCurrentSettings] = useState({
+    fontSize: "medium",
+    saveHistory: true,
+    highContrast: false,
+    reduceMotion: false,
+    desktopNotifications: false,
+  });
 
-  // State for language settings
-  const [language, setLanguage] = useState("en");
+  // Temporary settings (changes that haven't been saved yet)
+  const [tempSettings, setTempSettings] = useState({
+    fontSize: "medium",
+    saveHistory: true,
+    highContrast: false,
+    reduceMotion: false,
+    desktopNotifications: false,
+  });
 
-  // State for privacy settings
-  const [saveHistory, setSaveHistory] = useState(true);
-  const [allowAnalytics, setAllowAnalytics] = useState(true);
-  const [acceptCookies, setAcceptCookies] = useState(true);
+  // Update temporary settings
+  const updateTempSetting = (key: string, value: any) => {
+    setTempSettings((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
-  // State for accessibility settings
-  const [highContrast, setHighContrast] = useState(false);
-  const [reduceMotion, setReduceMotion] = useState(false);
-  const [screenReaderMode, setScreenReaderMode] = useState("standard");
-
-  // State for notification settings
-  const [desktopNotifications, setDesktopNotifications] = useState(true);
-  const [soundNotifications, setSoundNotifications] = useState(false);
-
-  // State for advanced settings
-  const [dataStorage, setDataStorage] = useState("local");
-
-  // Apply font size to document
-  useEffect(() => {
+  // Apply settings to the UI
+  const applySettings = (settings: typeof currentSettings) => {
     const htmlElement = document.documentElement;
 
-    // Remove any existing font size classes
-    htmlElement.classList.remove("text-sm", "text-base", "text-lg", "text-xl");
+    // Apply font size - improved scale for better readability
+    // Remove all font size classes first
+    htmlElement.classList.remove("text-base", "text-lg", "text-xl");
 
-    // Add the selected font size class
-    switch (fontSize) {
+    // Apply the appropriate font size class with improved scaling
+    switch (settings.fontSize) {
       case "small":
-        htmlElement.classList.add("text-sm");
+        // Small is now more readable than before
+        htmlElement.classList.add("text-base");
+        // Add custom CSS variable for consistent scaling
+        htmlElement.style.setProperty("--content-scale", "1");
         break;
       case "medium":
-        htmlElement.classList.add("text-base");
+        // Medium is now larger than the default
+        htmlElement.classList.add("text-lg");
+        htmlElement.style.setProperty("--content-scale", "1.15");
         break;
       case "large":
-        htmlElement.classList.add("text-lg");
-        break;
-      case "x-large":
+        // Large is significantly larger for better readability
         htmlElement.classList.add("text-xl");
+        htmlElement.style.setProperty("--content-scale", "1.3");
         break;
     }
-  }, [fontSize]);
 
-  // Apply color theme
-  useEffect(() => {
-    const root = document.documentElement;
-
-    // Set CSS variables for the selected theme
-    switch (colorTheme) {
-      case "blue":
-        root.style.setProperty("--primary-color", "#4f46e5");
-        root.style.setProperty("--primary-hover", "#4338ca");
-        break;
-      case "purple":
-        root.style.setProperty("--primary-color", "#8b5cf6");
-        root.style.setProperty("--primary-hover", "#7c3aed");
-        break;
-      case "green":
-        root.style.setProperty("--primary-color", "#10b981");
-        root.style.setProperty("--primary-hover", "#059669");
-        break;
-      case "red":
-        root.style.setProperty("--primary-color", "#ef4444");
-        root.style.setProperty("--primary-hover", "#dc2626");
-        break;
-      case "yellow":
-        root.style.setProperty("--primary-color", "#f59e0b");
-        root.style.setProperty("--primary-hover", "#d97706");
-        break;
-    }
-  }, [colorTheme]);
-
-  // Apply high contrast mode
-  useEffect(() => {
-    if (highContrast) {
+    // Apply high contrast mode
+    if (settings.highContrast) {
       document.body.classList.add("high-contrast");
     } else {
       document.body.classList.remove("high-contrast");
     }
-  }, [highContrast]);
 
-  // Apply reduced motion
-  useEffect(() => {
-    if (reduceMotion) {
+    // Apply reduced motion
+    if (settings.reduceMotion) {
       document.body.classList.add("reduce-motion");
     } else {
       document.body.classList.remove("reduce-motion");
     }
-  }, [reduceMotion]);
+
+    // Request notification permission if enabled
+    if (settings.desktopNotifications) {
+      if (Notification && Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
+    }
+  };
 
   // Handle clear all data
   const handleClearAllData = () => {
@@ -119,80 +102,166 @@ const SettingsModal = ({
         "Are you sure you want to clear all data? This action cannot be undone."
       )
     ) {
+      // Keep dark mode setting
+      const darkMode = localStorage.getItem("darkMode");
+
+      // Clear all data
       localStorage.clear();
       sessionStorage.clear();
-      alert("All data has been cleared. The page will now reload.");
-      window.location.reload();
+
+      // Restore dark mode setting
+      if (darkMode) {
+        localStorage.setItem("darkMode", darkMode);
+      }
+
+      showToast(
+        "All data has been cleared. The page will now reload.",
+        "success"
+      );
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500); // Give the toast time to be seen before reload
     }
   };
 
   // Save all settings
   const saveSettings = () => {
+    // Update current settings with temporary settings
+    setCurrentSettings(tempSettings);
+
+    // Apply the settings to the UI
+    applySettings(tempSettings);
+
     // Save settings to localStorage
-    localStorage.setItem("fontSize", fontSize);
-    localStorage.setItem("colorTheme", colorTheme);
-    localStorage.setItem("language", language);
-    localStorage.setItem("saveHistory", saveHistory.toString());
-    localStorage.setItem("allowAnalytics", allowAnalytics.toString());
-    localStorage.setItem("acceptCookies", acceptCookies.toString());
-    localStorage.setItem("highContrast", highContrast.toString());
-    localStorage.setItem("reduceMotion", reduceMotion.toString());
-    localStorage.setItem("screenReaderMode", screenReaderMode);
+    localStorage.setItem("fontSize", tempSettings.fontSize);
+    localStorage.setItem("saveHistory", tempSettings.saveHistory.toString());
+    localStorage.setItem("highContrast", tempSettings.highContrast.toString());
+    localStorage.setItem("reduceMotion", tempSettings.reduceMotion.toString());
     localStorage.setItem(
       "desktopNotifications",
-      desktopNotifications.toString()
+      tempSettings.desktopNotifications.toString()
     );
-    localStorage.setItem("soundNotifications", soundNotifications.toString());
-    localStorage.setItem("dataStorage", dataStorage);
 
-    // Show success message
-    alert("Settings saved successfully!");
+    // Show success message with toast
+    showToast("Settings saved successfully!", "success");
 
     // Close the modal
     onClose();
   };
 
+  // Reset temporary settings when modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      setTempSettings(currentSettings);
+    }
+  }, [isOpen, currentSettings]);
+
+  // Add CSS rule for font size scaling
+  useEffect(() => {
+    // Create a style element if it doesn't exist
+    let styleEl = document.getElementById("font-size-scaling");
+    if (!styleEl) {
+      styleEl = document.createElement("style");
+      styleEl.id = "font-size-scaling";
+      document.head.appendChild(styleEl);
+    }
+
+    // Add CSS rules for font scaling
+    styleEl.textContent = `
+      :root {
+        --content-scale: 1;
+      }
+      
+      /* Apply font scaling to main content areas only */
+      .chat-container, 
+      .settings-content,
+      .main-content,
+      .sidebar-content {
+        font-size: calc(1em * var(--content-scale));
+      }
+      
+      /* Specific styling for chat elements */
+      .chat-message p, 
+      .chat-input textarea {
+        font-size: calc(1em * var(--content-scale));
+        line-height: 1.5;
+      }
+      
+      /* Preserve fixed dimensions for profile elements */
+      .w-7 { width: 1.75rem !important; height: 1.75rem !important; }
+      .h-7 { width: 1.75rem !important; height: 1.75rem !important; }
+      .w-8 { width: 2rem !important; height: 2rem !important; }
+      .h-8 { width: 2rem !important; height: 2rem !important; }
+      .w-10 { width: 2.5rem !important; height: 2.5rem !important; }
+      .h-10 { width: 2.5rem !important; height: 2.5rem !important; }
+      .w-24 { width: 6rem !important; }
+      .h-24 { height: 6rem !important; }
+      
+      /* Ensure profile elements maintain their appearance */
+      .profile-picture, 
+      .profile-initial,
+      .profile-exempt {
+        font-size: inherit !important;
+        transform: none !important;
+      }
+      
+      /* Fix for header profile elements */
+      #profile-dropdown,
+      button[aria-controls="profile-dropdown"] {
+        font-size: inherit !important;
+      }
+    `;
+
+    return () => {
+      // Clean up when component unmounts
+      if (styleEl) {
+        document.head.removeChild(styleEl);
+      }
+    };
+  }, []);
+
   // Load settings from localStorage on component mount
   useEffect(() => {
+    const newSettings = { ...currentSettings };
+    let settingsChanged = false;
+
     const savedFontSize = localStorage.getItem("fontSize");
-    if (savedFontSize) setFontSize(savedFontSize);
-
-    const savedColorTheme = localStorage.getItem("colorTheme");
-    if (savedColorTheme) setColorTheme(savedColorTheme);
-
-    const savedLanguage = localStorage.getItem("language");
-    if (savedLanguage) setLanguage(savedLanguage);
+    if (savedFontSize) {
+      newSettings.fontSize = savedFontSize;
+      settingsChanged = true;
+    }
 
     const savedSaveHistory = localStorage.getItem("saveHistory");
-    if (savedSaveHistory) setSaveHistory(savedSaveHistory === "true");
-
-    const savedAllowAnalytics = localStorage.getItem("allowAnalytics");
-    if (savedAllowAnalytics) setAllowAnalytics(savedAllowAnalytics === "true");
-
-    const savedAcceptCookies = localStorage.getItem("acceptCookies");
-    if (savedAcceptCookies) setAcceptCookies(savedAcceptCookies === "true");
+    if (savedSaveHistory) {
+      newSettings.saveHistory = savedSaveHistory === "true";
+      settingsChanged = true;
+    }
 
     const savedHighContrast = localStorage.getItem("highContrast");
-    if (savedHighContrast) setHighContrast(savedHighContrast === "true");
+    if (savedHighContrast) {
+      newSettings.highContrast = savedHighContrast === "true";
+      settingsChanged = true;
+    }
 
     const savedReduceMotion = localStorage.getItem("reduceMotion");
-    if (savedReduceMotion) setReduceMotion(savedReduceMotion === "true");
-
-    const savedScreenReaderMode = localStorage.getItem("screenReaderMode");
-    if (savedScreenReaderMode) setScreenReaderMode(savedScreenReaderMode);
+    if (savedReduceMotion) {
+      newSettings.reduceMotion = savedReduceMotion === "true";
+      settingsChanged = true;
+    }
 
     const savedDesktopNotifications = localStorage.getItem(
       "desktopNotifications"
     );
-    if (savedDesktopNotifications)
-      setDesktopNotifications(savedDesktopNotifications === "true");
+    if (savedDesktopNotifications) {
+      newSettings.desktopNotifications = savedDesktopNotifications === "true";
+      settingsChanged = true;
+    }
 
-    const savedSoundNotifications = localStorage.getItem("soundNotifications");
-    if (savedSoundNotifications)
-      setSoundNotifications(savedSoundNotifications === "true");
-
-    const savedDataStorage = localStorage.getItem("dataStorage");
-    if (savedDataStorage) setDataStorage(savedDataStorage);
+    if (settingsChanged) {
+      setCurrentSettings(newSettings);
+      setTempSettings(newSettings);
+      applySettings(newSettings);
+    }
   }, []);
 
   return (
@@ -218,19 +287,6 @@ const SettingsModal = ({
               <div className="flex items-center">
                 <Sun size={18} className="mr-3" />
                 <span>Appearance</span>
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab("language")}
-              className={`w-full text-left px-4 py-2 rounded-md transition-colors ${
-                activeTab === "language"
-                  ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                  : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
-              }`}
-            >
-              <div className="flex items-center">
-                <Globe size={18} className="mr-3" />
-                <span>Language</span>
               </div>
             </button>
             <button
@@ -273,23 +329,23 @@ const SettingsModal = ({
               </div>
             </button>
             <button
-              onClick={() => setActiveTab("advanced")}
+              onClick={() => setActiveTab("data")}
               className={`w-full text-left px-4 py-2 rounded-md transition-colors ${
-                activeTab === "advanced"
+                activeTab === "data"
                   ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                   : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200"
               }`}
             >
               <div className="flex items-center">
-                <Zap size={18} className="mr-3" />
-                <span>Advanced</span>
+                <Trash size={18} className="mr-3" />
+                <span>Data Management</span>
               </div>
             </button>
           </div>
         </div>
 
         {/* Tab content */}
-        <div className="w-full md:w-3/4 bg-gray-50 dark:bg-gray-900/50 p-6 rounded-lg">
+        <div className="w-full md:w-3/4 bg-gray-50 dark:bg-gray-900/50 p-6 rounded-lg settings-content">
           {activeTab === "appearance" && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
@@ -344,99 +400,85 @@ const SettingsModal = ({
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Font Size
                   </label>
-                  <select
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={fontSize}
-                    onChange={(e) => setFontSize(e.target.value)}
-                  >
-                    <option value="small">Small</option>
-                    <option value="medium">Medium</option>
-                    <option value="large">Large</option>
-                    <option value="x-large">Extra Large</option>
-                  </select>
-                </div>
+                  <div className="space-y-3">
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="fontSize-small"
+                          name="fontSize"
+                          value="small"
+                          checked={tempSettings.fontSize === "small"}
+                          onChange={(e) =>
+                            updateTempSetting("fontSize", e.target.value)
+                          }
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <label
+                          htmlFor="fontSize-small"
+                          className="text-sm text-gray-700 dark:text-gray-300"
+                        >
+                          Small
+                        </label>
+                      </div>
+                      <div className="ml-6 p-2 bg-gray-100 dark:bg-gray-800 rounded text-sm">
+                        <span>This is a preview of the small font size.</span>
+                      </div>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Color Theme
-                  </label>
-                  <div className="grid grid-cols-5 gap-2">
-                    <button
-                      className={`w-8 h-8 rounded-full bg-blue-600 border-2 ${
-                        colorTheme === "blue"
-                          ? "border-black dark:border-white ring-2 ring-blue-400"
-                          : "border-white dark:border-gray-800"
-                      } shadow-sm transition-all`}
-                      onClick={() => setColorTheme("blue")}
-                      aria-label="Blue theme"
-                    ></button>
-                    <button
-                      className={`w-8 h-8 rounded-full bg-purple-600 border-2 ${
-                        colorTheme === "purple"
-                          ? "border-black dark:border-white ring-2 ring-purple-400"
-                          : "border-white dark:border-gray-800"
-                      } shadow-sm transition-all`}
-                      onClick={() => setColorTheme("purple")}
-                      aria-label="Purple theme"
-                    ></button>
-                    <button
-                      className={`w-8 h-8 rounded-full bg-green-600 border-2 ${
-                        colorTheme === "green"
-                          ? "border-black dark:border-white ring-2 ring-green-400"
-                          : "border-white dark:border-gray-800"
-                      } shadow-sm transition-all`}
-                      onClick={() => setColorTheme("green")}
-                      aria-label="Green theme"
-                    ></button>
-                    <button
-                      className={`w-8 h-8 rounded-full bg-red-600 border-2 ${
-                        colorTheme === "red"
-                          ? "border-black dark:border-white ring-2 ring-red-400"
-                          : "border-white dark:border-gray-800"
-                      } shadow-sm transition-all`}
-                      onClick={() => setColorTheme("red")}
-                      aria-label="Red theme"
-                    ></button>
-                    <button
-                      className={`w-8 h-8 rounded-full bg-yellow-500 border-2 ${
-                        colorTheme === "yellow"
-                          ? "border-black dark:border-white ring-2 ring-yellow-400"
-                          : "border-white dark:border-gray-800"
-                      } shadow-sm transition-all`}
-                      onClick={() => setColorTheme("yellow")}
-                      aria-label="Yellow theme"
-                    ></button>
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="fontSize-medium"
+                          name="fontSize"
+                          value="medium"
+                          checked={tempSettings.fontSize === "medium"}
+                          onChange={(e) =>
+                            updateTempSetting("fontSize", e.target.value)
+                          }
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <label
+                          htmlFor="fontSize-medium"
+                          className="text-sm text-gray-700 dark:text-gray-300"
+                        >
+                          Medium
+                        </label>
+                      </div>
+                      <div className="ml-6 p-2 bg-gray-100 dark:bg-gray-800 rounded text-base">
+                        <span>This is a preview of the medium font size.</span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="fontSize-large"
+                          name="fontSize"
+                          value="large"
+                          checked={tempSettings.fontSize === "large"}
+                          onChange={(e) =>
+                            updateTempSetting("fontSize", e.target.value)
+                          }
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <label
+                          htmlFor="fontSize-large"
+                          className="text-sm text-gray-700 dark:text-gray-300"
+                        >
+                          Large
+                        </label>
+                      </div>
+                      <div className="ml-6 p-2 bg-gray-100 dark:bg-gray-800 rounded text-lg">
+                        <span>This is a preview of the large font size.</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "language" && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                Language Settings
-              </h3>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Interface Language
-                  </label>
-                  <select
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={language}
-                    onChange={(e) => setLanguage(e.target.value)}
-                  >
-                    <option value="en">English</option>
-                    <option value="es">Español</option>
-                    <option value="fr">Français</option>
-                    <option value="de">Deutsch</option>
-                    <option value="ja">日本語</option>
-                    <option value="zh">中文</option>
-                  </select>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    Changes will take effect after reloading the page
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                    Choose a font size that's comfortable for your reading
+                    preference.
                   </p>
                 </div>
               </div>
@@ -455,8 +497,10 @@ const SettingsModal = ({
                     type="checkbox"
                     id="saveHistory"
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    checked={saveHistory}
-                    onChange={(e) => setSaveHistory(e.target.checked)}
+                    checked={tempSettings.saveHistory}
+                    onChange={(e) =>
+                      updateTempSetting("saveHistory", e.target.checked)
+                    }
                   />
                   <label
                     htmlFor="saveHistory"
@@ -465,39 +509,10 @@ const SettingsModal = ({
                     Save chat history
                   </label>
                 </div>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="analytics"
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    checked={allowAnalytics}
-                    onChange={(e) => setAllowAnalytics(e.target.checked)}
-                  />
-                  <label
-                    htmlFor="analytics"
-                    className="ml-2 text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    Allow anonymous usage analytics
-                  </label>
-                </div>
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="cookies"
-                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    checked={acceptCookies}
-                    onChange={(e) => setAcceptCookies(e.target.checked)}
-                  />
-                  <label
-                    htmlFor="cookies"
-                    className="ml-2 text-sm text-gray-700 dark:text-gray-300"
-                  >
-                    Accept cookies
-                  </label>
-                </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  Your privacy choices are saved automatically and will be
-                  applied immediately.
+                  When enabled, your chat conversations will be saved locally on
+                  your device. Disable this option if you prefer not to store
+                  your chat history.
                 </p>
               </div>
             </div>
@@ -515,8 +530,10 @@ const SettingsModal = ({
                     type="checkbox"
                     id="highContrast"
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    checked={highContrast}
-                    onChange={(e) => setHighContrast(e.target.checked)}
+                    checked={tempSettings.highContrast}
+                    onChange={(e) =>
+                      updateTempSetting("highContrast", e.target.checked)
+                    }
                   />
                   <label
                     htmlFor="highContrast"
@@ -530,8 +547,10 @@ const SettingsModal = ({
                     type="checkbox"
                     id="reduceMotion"
                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                    checked={reduceMotion}
-                    onChange={(e) => setReduceMotion(e.target.checked)}
+                    checked={tempSettings.reduceMotion}
+                    onChange={(e) =>
+                      updateTempSetting("reduceMotion", e.target.checked)
+                    }
                   />
                   <label
                     htmlFor="reduceMotion"
@@ -540,22 +559,9 @@ const SettingsModal = ({
                     Reduce motion
                   </label>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Screen Reader Compatibility
-                  </label>
-                  <select
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={screenReaderMode}
-                    onChange={(e) => setScreenReaderMode(e.target.value)}
-                  >
-                    <option value="standard">Standard</option>
-                    <option value="enhanced">Enhanced</option>
-                  </select>
-                </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  Accessibility settings are applied immediately to improve your
-                  experience.
+                  Accessibility settings will be applied when you click Save
+                  Changes.
                 </p>
               </div>
             </div>
@@ -582,9 +588,12 @@ const SettingsModal = ({
                       type="checkbox"
                       id="desktopNotifications"
                       className="absolute w-6 h-6 opacity-0 z-10 cursor-pointer"
-                      checked={desktopNotifications}
+                      checked={tempSettings.desktopNotifications}
                       onChange={(e) => {
-                        setDesktopNotifications(e.target.checked);
+                        updateTempSetting(
+                          "desktopNotifications",
+                          e.target.checked
+                        );
                         if (e.target.checked) {
                           // Request notification permission if enabled
                           if (
@@ -599,48 +608,16 @@ const SettingsModal = ({
                     <label
                       htmlFor="desktopNotifications"
                       className={`block w-full h-full rounded-full ${
-                        desktopNotifications
+                        tempSettings.desktopNotifications
                           ? "bg-blue-600"
                           : "bg-gray-300 dark:bg-gray-600"
                       } cursor-pointer`}
                     >
                       <span
                         className={`absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-transform duration-300 ease-in-out ${
-                          desktopNotifications ? "transform translate-x-6" : ""
-                        }`}
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Sound Notifications
-                    </label>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Play a sound when receiving a new message
-                    </p>
-                  </div>
-                  <div className="relative inline-block w-12 h-6 transition duration-200 ease-in-out rounded-full">
-                    <input
-                      type="checkbox"
-                      id="soundNotifications"
-                      className="absolute w-6 h-6 opacity-0 z-10 cursor-pointer"
-                      checked={soundNotifications}
-                      onChange={(e) => setSoundNotifications(e.target.checked)}
-                    />
-                    <label
-                      htmlFor="soundNotifications"
-                      className={`block w-full h-full rounded-full ${
-                        soundNotifications
-                          ? "bg-blue-600"
-                          : "bg-gray-300 dark:bg-gray-600"
-                      } cursor-pointer`}
-                    >
-                      <span
-                        className={`absolute left-1 top-1 w-4 h-4 rounded-full bg-white transition-transform duration-300 ease-in-out ${
-                          soundNotifications ? "transform translate-x-6" : ""
+                          tempSettings.desktopNotifications
+                            ? "transform translate-x-6"
+                            : ""
                         }`}
                       />
                     </label>
@@ -654,33 +631,19 @@ const SettingsModal = ({
             </div>
           )}
 
-          {activeTab === "advanced" && (
+          {activeTab === "data" && (
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-white">
-                Advanced Settings
+                Data Management
               </h3>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Data Storage
-                  </label>
-                  <select
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={dataStorage}
-                    onChange={(e) => setDataStorage(e.target.value)}
-                  >
-                    <option value="local">Local Storage Only</option>
-                    <option value="cloud">Cloud Sync</option>
-                  </select>
-                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    {dataStorage === "cloud"
-                      ? "Your data will be synced across devices"
-                      : "Your data will only be stored on this device"}
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                    Your data is stored locally on this device. You can clear
+                    all data if needed.
                   </p>
-                </div>
 
-                <div>
                   <button
                     className="px-4 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-md transition-colors"
                     onClick={handleClearAllData}
@@ -689,7 +652,7 @@ const SettingsModal = ({
                   </button>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     This will permanently delete all your saved data and
-                    preferences
+                    preferences, except for your dark mode setting.
                   </p>
                 </div>
               </div>

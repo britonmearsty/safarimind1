@@ -12,6 +12,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useState, useRef, memo } from "react";
+import { useToast } from "../contexts/ToastContext";
 
 type MessageProps = {
   content: string;
@@ -124,6 +125,7 @@ const ChatMessage = memo(function ChatMessage({
 
   // Handle share
   const handleShare = async () => {
+    const { showToast } = useToast();
     try {
       if (navigator.share) {
         await navigator.share({
@@ -132,7 +134,7 @@ const ChatMessage = memo(function ChatMessage({
         });
       } else {
         await navigator.clipboard.writeText(content);
-        alert("Content copied to clipboard for sharing");
+        showToast("Content copied to clipboard for sharing", "success");
       }
     } catch (err) {
       console.error("Failed to share: ", err);
@@ -393,7 +395,7 @@ const ChatMessage = memo(function ChatMessage({
                 </button>
               </div>
             )}
-            
+
             {/* Timestamp at bottom left */}
             <div className="flex justify-start mt-2">
               <span
@@ -407,9 +409,7 @@ const ChatMessage = memo(function ChatMessage({
               >
                 {timestamp}
                 {isTyping && (
-                  <span className="ml-2 animate-pulse">
-                    typing...
-                  </span>
+                  <span className="ml-2 animate-pulse">typing...</span>
                 )}
               </span>
             </div>
