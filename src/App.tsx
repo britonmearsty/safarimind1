@@ -39,7 +39,7 @@ import { useToast } from "./contexts/ToastContext";
 // Function to generate AI responses using our consolidated AI service
 const generateAIResponse = async (
   userMessage: string,
-  messageHistory: Message[] = []
+  messageHistory: Message[] = [],
 ): Promise<{ content: string; error?: boolean }> => {
   // Check if this is a greeting message
   const lowercaseMsg = userMessage.toLowerCase();
@@ -51,7 +51,7 @@ const generateAIResponse = async (
     lowercaseMsg === "hello"
   ) {
     console.log(
-      "Detected greeting message, using specialized greeting function"
+      "Detected greeting message, using specialized greeting function",
     );
 
     try {
@@ -74,7 +74,7 @@ const generateAIResponse = async (
       // Use the specialized greeting function
       const greetingResponse = await generateUniqueGreeting(
         userMessage,
-        userName
+        userName,
       );
       return { content: greetingResponse };
     } catch (error) {
@@ -165,7 +165,8 @@ ${userName ? `- Address the user by their name: "${userName}"` : ""}
 
 Return ONLY the greeting text with no additional explanation.
 `;
-      } else if (lowercaseMsg.includes("help")) {
+      }
+      else if (lowercaseMsg.includes("help")) {
         contextualPrompt = `
 As SafariMind, respond to this help request: "${userMessage}"
 - Express willingness to assist
@@ -173,14 +174,16 @@ As SafariMind, respond to this help request: "${userMessage}"
 - Maintain a helpful, supportive tone
 - Briefly mention your capabilities if relevant
 `;
-      } else if (lowercaseMsg.includes("thank")) {
+      }
+      else if (lowercaseMsg.includes("thank")) {
         contextualPrompt = `
 As SafariMind, respond to this expression of gratitude: "${userMessage}"
 - Express that you're happy to help
 - Ask if there's anything else you can assist with
 - Keep the response brief and warm
 `;
-      } else {
+      }
+      else {
         contextualPrompt = `
 As SafariMind, acknowledge this request that you're having trouble processing: "${userMessage}"
 - Express that you're working to improve
@@ -215,7 +218,7 @@ As SafariMind, acknowledge this request that you're having trouble processing: "
               maxOutputTokens: 150,
             },
           }),
-        }
+        },
       );
 
       if (emergencyResponse.ok) {
@@ -278,7 +281,8 @@ export default function App() {
     const messagesToSave = messages.filter((msg) => !msg.isTyping);
     if (messagesToSave.length > 0) {
       localStorage.setItem("currentChat", JSON.stringify(messagesToSave));
-    } else {
+    }
+    else {
       localStorage.removeItem("currentChat");
     }
   }, [messages]);
@@ -296,7 +300,7 @@ export default function App() {
     document.body.classList.add(
       "transition-colors",
       "duration-300",
-      "ease-in-out"
+      "ease-in-out",
     );
 
     // Check if user has a saved preference for using system theme
@@ -307,17 +311,19 @@ export default function App() {
     if (useSystemTheme) {
       // Use system preference
       const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
+        "(prefers-color-scheme: dark)",
       ).matches;
       setIsDarkMode(prefersDark);
       if (prefersDark) {
         document.documentElement.classList.add("dark");
         document.body.classList.add("dark-mode-transition");
-      } else {
+      }
+      else {
         document.documentElement.classList.remove("dark");
         document.body.classList.remove("dark-mode-transition");
       }
-    } else {
+    }
+    else {
       // Use saved preference from localStorage
       const savedMode = localStorage.getItem("darkMode");
       if (savedMode === "true") {
@@ -339,7 +345,8 @@ export default function App() {
             fromStorage: true,
           }));
           setMessages(messagesWithFlag);
-        } else {
+        }
+        else {
           // Initialize with empty messages array if saved messages are empty
           setMessages([]);
         }
@@ -348,7 +355,8 @@ export default function App() {
         // Initialize with empty messages array if there's an error
         setMessages([]);
       }
-    } else {
+    }
+    else {
       // Initialize with empty messages array if no saved messages
       setMessages([]);
     }
@@ -360,7 +368,7 @@ export default function App() {
 
     // Add event listener for system theme changes
     const darkModeMediaQuery = window.matchMedia(
-      "(prefers-color-scheme: dark)"
+      "(prefers-color-scheme: dark)",
     );
     const handleSystemThemeChange = (event: MediaQueryListEvent) => {
       if (isSystemTheme) {
@@ -368,7 +376,8 @@ export default function App() {
         if (event.matches) {
           document.documentElement.classList.add("dark");
           document.body.classList.add("dark-mode-transition");
-        } else {
+        }
+        else {
           document.documentElement.classList.remove("dark");
           document.body.classList.remove("dark-mode-transition");
         }
@@ -395,7 +404,7 @@ export default function App() {
       if (newUseSystem) {
         // Switch to system preference
         const prefersDark = window.matchMedia(
-          "(prefers-color-scheme: dark)"
+          "(prefers-color-scheme: dark)",
         ).matches;
         setIsDarkMode(prefersDark);
 
@@ -404,7 +413,8 @@ export default function App() {
         if (prefersDark) {
           document.documentElement.classList.add("dark");
           document.body.classList.add("dark-mode-transition");
-        } else {
+        }
+        else {
           document.documentElement.classList.remove("dark");
           document.body.classList.remove("dark-mode-transition");
         }
@@ -429,7 +439,7 @@ export default function App() {
 
       // Start with the current system preference as the manual setting
       const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)"
+        "(prefers-color-scheme: dark)",
       ).matches;
       setIsDarkMode(prefersDark);
       localStorage.setItem("darkMode", prefersDark.toString());
@@ -439,7 +449,8 @@ export default function App() {
       if (prefersDark) {
         document.documentElement.classList.add("dark");
         document.body.classList.add("dark-mode-transition");
-      } else {
+      }
+      else {
         document.documentElement.classList.remove("dark");
         document.body.classList.remove("dark-mode-transition");
       }
@@ -448,7 +459,8 @@ export default function App() {
       setTimeout(() => {
         document.body.classList.remove("theme-transition");
       }, 300);
-    } else {
+    }
+    else {
       // Toggle between light and dark mode manually
       setIsDarkMode((prevMode) => {
         const newMode = !prevMode;
@@ -462,7 +474,8 @@ export default function App() {
           if (newMode) {
             document.documentElement.classList.add("dark");
             document.body.classList.add("dark-mode-transition");
-          } else {
+          }
+          else {
             document.documentElement.classList.remove("dark");
             document.body.classList.remove("dark-mode-transition");
           }
@@ -500,7 +513,7 @@ export default function App() {
       // Validate message length
       if (content.length > MAX_MESSAGE_LENGTH) {
         setInputError(
-          `Message is too long. Please limit to ${MAX_MESSAGE_LENGTH} characters.`
+          `Message is too long. Please limit to ${MAX_MESSAGE_LENGTH} characters.`,
         );
         return;
       }
@@ -550,7 +563,7 @@ export default function App() {
                 isUser: false,
                 timestamp: formatTime(),
                 isError: response.error,
-              })
+              }),
           );
         } catch (error) {
           console.error("Error in handleSendMessage:", error);
@@ -565,7 +578,7 @@ export default function App() {
                 isUser: false,
                 timestamp: formatTime(),
                 isError: true,
-              })
+              }),
           );
         } finally {
           // Reset processing state
@@ -573,7 +586,7 @@ export default function App() {
         }
       }, 1000);
     },
-    [messages]
+    [messages],
   );
 
   // Clear all chat messages and remove from localStorage
@@ -581,7 +594,7 @@ export default function App() {
   const handleClearChat = useCallback(() => {
     if (messages.length > 0) {
       const confirmClear = window.confirm(
-        "Are you sure you want to clear this chat?"
+        "Are you sure you want to clear this chat?",
       );
       if (confirmClear) {
         setMessages([]);
@@ -640,12 +653,12 @@ export default function App() {
       // Update the message content
       setMessages((prev) => {
         const updatedMessages = prev.map((msg) =>
-          msg.id === messageId ? { ...msg, content: newContent } : msg
+          msg.id === messageId ? { ...msg, content: newContent } : msg,
         );
 
         // Find the edited message
         const editedMessageIndex = updatedMessages.findIndex(
-          (msg) => msg.id === messageId
+          (msg) => msg.id === messageId,
         );
         const editedMessage = updatedMessages[editedMessageIndex];
 
@@ -688,7 +701,7 @@ export default function App() {
                 // Generate AI response based on edited user input and conversation history
                 const response = await generateAIResponse(
                   newContent,
-                  messageHistory
+                  messageHistory,
                 );
 
                 // Replace typing indicator with new response
@@ -704,12 +717,12 @@ export default function App() {
                       };
                     }
                     return msg;
-                  })
+                  }),
                 );
               } catch (error) {
                 console.error(
                   "Error in handleEditMessage regeneration:",
-                  error
+                  error,
                 );
 
                 // If service fails, provide a thoughtful generic response
@@ -726,7 +739,7 @@ export default function App() {
                       };
                     }
                     return msg;
-                  })
+                  }),
                 );
               } finally {
                 setIsProcessing(false);
@@ -740,7 +753,7 @@ export default function App() {
         return updatedMessages;
       });
     },
-    [setIsProcessing, generateAIResponse]
+    [setIsProcessing, generateAIResponse],
   );
 
   const handleRegenerateResponse = useCallback(
@@ -788,7 +801,7 @@ export default function App() {
             // Generate AI response based on user input and conversation history
             const response = await generateAIResponse(
               userMessage.content,
-              messageHistory
+              messageHistory,
             );
 
             // Replace typing indicator with new response
@@ -801,7 +814,7 @@ export default function App() {
                   isUser: false,
                   timestamp: formatTime(),
                   isError: response.error,
-                })
+                }),
             );
           } catch (error) {
             console.error("Error in handleRegenerateResponse:", error);
@@ -817,7 +830,7 @@ export default function App() {
                   isUser: false,
                   timestamp: formatTime(),
                   isError: false,
-                })
+                }),
             );
           } finally {
             setIsProcessing(false);
@@ -825,7 +838,7 @@ export default function App() {
         }, 1000);
       }
     },
-    [messages]
+    [messages],
   );
 
   const handleExportPdf = useCallback(
@@ -846,24 +859,20 @@ export default function App() {
       element.click();
       document.body.removeChild(element);
     },
-    [messages]
+    [messages],
   );
 
   // Handle like action
-  const handleLikeMessage = useCallback(
-    (messageId: string) => {
-      // In a real app, this would send the like to a backend
-      // For now, just show a toast notification
-      showToast("Thanks for your feedback!", "success");
-    },
-    [showToast]
-  );
+  const handleLikeMessage = useCallback(() => {
+    // In a real app, this would send the like to a backend
+    // For now, just show a toast notification
+    showToast("Thanks for your feedback!", "success");
+  }, [showToast]);
 
   // Handle dislike action
   const handleDislikeMessage = useCallback((messageId: string) => {
-    // Set the current message ID for feedback
+    // Set the current message ID and open the feedback dialog
     setCurrentFeedbackMessageId(messageId);
-    // Open the feedback dialog
     setIsFeedbackDialogOpen(true);
   }, []);
 
@@ -886,8 +895,7 @@ export default function App() {
     <ToastProvider position="bottom-right" maxToasts={3}>
       <div
         className="flex flex-col h-screen w-screen overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-950 dark:to-blue-950"
-        style={{ fontFamily: "Inter, sans-serif" }}
-      >
+        style={{ fontFamily: "Inter, sans-serif" }}>
         {isLoading ? (
           <LoadingScreen />
         ) : (
@@ -969,7 +977,7 @@ export default function App() {
                 // Save loaded chat as current chat
                 localStorage.setItem(
                   "currentChat",
-                  JSON.stringify(chatMessages)
+                  JSON.stringify(chatMessages),
                 );
               }}
             />

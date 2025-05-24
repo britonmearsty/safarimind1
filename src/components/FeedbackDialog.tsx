@@ -1,12 +1,12 @@
 import { useState } from "react";
 import Modal from "./Modal";
 import { useToast } from "../contexts/ToastContext";
-import { ThumbsDown, Check } from "lucide-react";
+import { Check } from "lucide-react";
 
 type FeedbackDialogProps = {
   isOpen: boolean;
   onClose: () => void;
-  messageId: string | null;
+  messageId: string | null; // ID of the message being given feedback on
 };
 
 const FeedbackDialog = ({
@@ -37,8 +37,14 @@ const FeedbackDialog = ({
 
     setIsSubmitting(true);
 
-    // Simulate sending feedback to a server
+    // Simulate sending feedback to a server with messageId
     setTimeout(() => {
+      // Here you would typically send the feedback data including messageId
+      console.log("Sending feedback for message:", messageId, {
+        reason: selectedReason,
+        comments: feedbackText,
+      });
+
       setIsSubmitting(false);
       setIsSubmitted(true);
 
@@ -59,8 +65,7 @@ const FeedbackDialog = ({
       onClose={onClose}
       title="Provide Feedback"
       size="md"
-      hideFooter={true}
-    >
+      hideFooter={true}>
       {!isSubmitted ? (
         <div className="space-y-4">
           <p className="text-gray-600 dark:text-gray-300">
@@ -87,8 +92,7 @@ const FeedbackDialog = ({
                   />
                   <label
                     htmlFor={`reason-${reason}`}
-                    className="ml-2 block text-sm text-gray-700 dark:text-gray-300"
-                  >
+                    className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
                     {reason}
                   </label>
                 </div>
@@ -100,8 +104,7 @@ const FeedbackDialog = ({
           <div>
             <label
               htmlFor="feedback-text"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-            >
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Additional comments (optional)
             </label>
             <textarea
@@ -118,8 +121,7 @@ const FeedbackDialog = ({
             <button
               type="button"
               onClick={onClose}
-              className="mr-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
-            >
+              className="mr-2 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
               Cancel
             </button>
             <button
@@ -130,29 +132,25 @@ const FeedbackDialog = ({
                 isSubmitting
                   ? "bg-blue-400 dark:bg-blue-500 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600"
-              } text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center`}
-            >
+              } text-white rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center`}>
               {isSubmitting ? (
                 <>
                   <svg
                     className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                     xmlns="http://www.w3.org/2000/svg"
                     fill="none"
-                    viewBox="0 0 24 24"
-                  >
+                    viewBox="0 0 24 24">
                     <circle
                       className="opacity-25"
                       cx="12"
                       cy="12"
                       r="10"
                       stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
+                      strokeWidth="4"></circle>
                     <path
                       className="opacity-75"
                       fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
                   Submitting...
                 </>
